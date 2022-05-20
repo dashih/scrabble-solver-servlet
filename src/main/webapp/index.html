@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Scrabble Solver</title>
+    <meta name="description" content="A Scrabble Solver application">
+</head>
+
+<body>
+    <form action="solve" method="post">
+        <input name="input" type="text" placeholder="Input" />
+        <input name="regex" type="text" placeholder="Regex" />
+        <select name="minCharsForMatches">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected="selected">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+        </select>
+        <input type="submit" value="Solve!" />
+    </form>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+plugins {
+    id 'war'
+}
+
+group 'org.dannyshih.scrabblesolver'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
+}
