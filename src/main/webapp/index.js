@@ -6,11 +6,10 @@ var operationId = undefined;
 var statusPending = false;
 
 window.onload = () => {
-    document.getElementById('running').style.visibility = 'hidden';
+    document.getElementById('running').style.display = 'none';
 };
 
 document.getElementById('solveButton').onclick = async () => {
-    document.getElementById('solveButton').disabled = true;
     const solveParams = {
         password: '',
         parallelMode: document.getElementById('mode').value === 'true',
@@ -31,13 +30,13 @@ document.getElementById('solveButton').onclick = async () => {
         let idJson = await solveResponse.json();
         operationId = idJson['id'];
         document.getElementById('summary').innerText =
-            `Operation id: ${operationId}
-            Input: ${solveParams.input}
-            Running in ${solveParams.parallelMode ? 'parallel' : 'sequential'} mode
-            Outputting matches of ${solveParams.minChars} length or greater
-            Outputting matches of pattern: ${solveParams.regex}
+            `${solveParams.input}
+            ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
+            ${solveParams.minChars}-chars or greater
+            Matching ${solveParams.regex}
             `;
-        document.getElementById('running').style.visibility = 'visible';
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('running').style.display = 'block';
         statusTask = setInterval(async () => {
             if (statusPending) {
                 return;
@@ -54,11 +53,10 @@ document.getElementById('solveButton').onclick = async () => {
                     clearInterval(statusTask);
                     progress['percentDone'] = 100;
                     operationId = undefined;
-                    document.getElementById('solutions').innerText = `
-                        Found ${progress['solutions'].length} solutions!
+                    document.getElementById('solutions').innerText =
+                        `Found ${progress['solutions'].length} solutions!
 
                     `;
-                    document.getElementById('solveButton').disabled = false;
                 }
 
                 for (let i = 0; i < progress['solutions'].length; i++) {
@@ -76,6 +74,5 @@ document.getElementById('solveButton').onclick = async () => {
         }, refreshPeriod);
     } else {
         alert("Error from server: " + solveResponse.status);
-        document.getElementById('solveButton').disabled = false;
     }
 };

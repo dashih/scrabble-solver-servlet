@@ -1,41 +1,64 @@
 <!doctype html>
-<html>
+<html lang="en">
 
 <head>
     <title>Scrabble Solver</title>
-    <meta name="description" content="A Scrabble Solver application">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A Scrabble Helper application">
+
+    <link rel="stylesheet" href="index.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 </head>
 
-<body>
-    <select id="mode">
-        <option value="true">Parallel Mode</option>
-        <option value="false" selected="selected">Sequential Mode</option>
-    </select>
-    <select id="minChars">
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4" selected="selected">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-    </select>
-    <br />
-    <br />
-    <input id="input" type="text" placeholder="Input" />
-    <input id="regex" type="text" placeholder="Regex" />
+<body class="bg-light">
+    <div class="container text-dark text-center">
+        <!-- Title -->
+        <div class="row mt-3 g-0">
+            <div class="col-md-auto mx-auto">
+                <h1>Scrabble Helper</h1>
+                <div class="version font-monospace">v2.0</div>
+                <hr class="mx-auto" />
+            </div>
+        </div>
 
-    <button id="solveButton" type="button">Solve!</button>
+        <div class="row g-0 my-3">
+            <div class="col-md-auto mx-auto">
+                <div id="form">
+                    <select id="mode" class="form-select text-center mb-2">
+                        <option value="true" selected="selected">Parallel Mode</option>
+                        <option value="false">Sequential Mode</option>
+                    </select>
+                    <select id="minChars" class="form-select text-center mb-2">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6" selected="selected">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                    </select>
+                    <input id="input" type="text" class="form-control text-center mb-2" placeholder="Input" />
+                    <input id="regex" type="text" class="form-control text-center mb-2" placeholder="Regex" />
 
-    <div id="running">
-        <hr />
-        <div id="summary"></div>
-        <hr />
-        <progress id="progressBar" value="0" max="100" style="width:25%"></progress>
-        <div id="progressText"></div>
-        <hr />
-        <div id="solutions"></div>
+                    <button id="solveButton" type="button" class="btn btn-primary">Solve!</button>
+                </div>
+
+                <div id="running" class="font-monospace fs-6">
+                    <div id="summary" class=""></div>
+                    <hr class="mx-auto" />
+                    <progress id="progressBar" value="0" max="100"></progress>
+                    <div id="progressText"></div>
+                    <hr class="mx-auto" />
+                    <div id="solutions" class="fs-5"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="text/javascript" src="index.js"></script>
