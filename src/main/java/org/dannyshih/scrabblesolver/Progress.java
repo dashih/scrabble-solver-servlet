@@ -4,6 +4,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -69,7 +70,8 @@ final class Progress {
             sp.solutions = ImmutableList.of();
             sp.percentDone = 0.0f;
         } else {
-            sp.solutions = ImmutableList.copyOf(m_solutions.keySet());
+            sp.solutions = new ArrayList<>(m_solutions.keySet());
+            sp.solutions.sort((word0, word1) -> word1.length() - word0.length());
             sp.total = m_total.get();
             sp.percentDone = ((float)m_processed.get() / m_total.get()) * 100.0f;
             sp.elapsed = m_stopwatch.elapsed(TimeUnit.MILLISECONDS);
