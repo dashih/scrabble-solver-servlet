@@ -1,5 +1,6 @@
 package org.dannyshih.scrabblesolver;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -7,15 +8,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.CharStreams;
 import com.google.common.math.BigIntegerMath;
 
 public final class Solver {
@@ -75,8 +73,10 @@ public final class Solver {
     }
 
     private void populateDictionary() throws IOException {
-        InputStream in = getClass().getResourceAsStream("/dictionary.txt");
-        m_dictionary.addAll(CharStreams.readLines(new InputStreamReader(in)));
+        InputStream in = Preconditions.checkNotNull(getClass().getResourceAsStream("/dictionary.txt"));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+            br.lines().forEach(m_dictionary::add);
+        }
     }
 
     private static void getCombinationswithBlanks(

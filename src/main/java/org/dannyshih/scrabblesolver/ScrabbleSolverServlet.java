@@ -1,5 +1,6 @@
 package org.dannyshih.scrabblesolver;
 
+import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
     urlPatterns = { "/api/solve", "/api/getProgress" })
 public final class ScrabbleSolverServlet extends HttpServlet {
     private static final int NUM_THREADS = 2;
+    private static final String PASSWORD_RESOURCE = "/password.txt";
 
     private final ExecutorService m_executor;
     private final Gson m_gson;
@@ -34,8 +36,8 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         m_executor = Executors.newFixedThreadPool(NUM_THREADS);
         m_gson = new Gson();
         m_operations = new ConcurrentHashMap<>();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(getClass().getResourceAsStream("/password.txt")))) {
+        InputStream passwordResource = Preconditions.checkNotNull(getClass().getResourceAsStream(PASSWORD_RESOURCE));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(passwordResource))) {
             String password = reader.readLine();
             m_passwordHash = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
         } catch (IOException e) {

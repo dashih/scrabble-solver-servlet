@@ -25,6 +25,11 @@ document.getElementById('solveButton').onclick = async () => {
         regex: document.getElementById('regex').value,
         minChars: document.getElementById('minChars').value
     };
+    if (solveParams.input === '') {
+        alert('Must provide input!');
+        return;
+    }
+
     if (solveParams.regex == '') {
         solveParams.regex = '[A-Z]+';
     }
