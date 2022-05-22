@@ -7,21 +7,38 @@
 </head>
 
 <body>
-    <form action="solve" method="post">
-        <input name="input" type="text" placeholder="Input" />
-        <input name="regex" type="text" placeholder="Regex" />
-        <select name="minCharsForMatches">
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4" selected="selected">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-        </select>
-        <input type="submit" value="Solve!" />
-    </form>
+    <select id="mode">
+        <option value="true">Parallel Mode</option>
+        <option value="false" selected="selected">Sequential Mode</option>
+    </select>
+    <select id="minChars">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4" selected="selected">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+    </select>
+    <br />
+    <br />
+    <input id="input" type="text" placeholder="Input" />
+    <input id="regex" type="text" placeholder="Regex" />
+
+    <button id="solveButton" type="button">Solve!</button>
+
+    <div id="running">
+        <hr />
+        <div id="summary"></div>
+        <hr />
+        <progress id="progressBar" value="0" max="100" style="width:25%"></progress>
+        <div id="progressText"></div>
+        <hr />
+        <div id="solutions"></div>
+    </div>
+
+    <script type="text/javascript" src="index.js"></script>
 </body>
 
 </html>
