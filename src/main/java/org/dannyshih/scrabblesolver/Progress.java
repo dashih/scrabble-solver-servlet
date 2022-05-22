@@ -17,6 +17,8 @@ final class Progress {
     private final Gson m_gson;
     private final Stopwatch m_stopwatch;
 
+    private Exception m_exception;
+
     private RunStatus m_runStatus;
 
     Progress() {
@@ -38,12 +40,21 @@ final class Progress {
         return m_runStatus;
     }
 
+    Exception getError() {
+        return m_exception;
+    }
+
     void increment() {
         m_processed.incrementAndGet();
     }
 
     void addSolution(String solution) {
         m_solutions.putIfAbsent(solution, true);
+    }
+
+    void finish(Exception exception) {
+        m_runStatus = RunStatus.Failed;
+        m_exception = exception;
     }
 
     void finish() {
@@ -70,6 +81,7 @@ final class Progress {
     enum RunStatus {
         Starting,
         Running,
+        Failed,
         Done
     }
 

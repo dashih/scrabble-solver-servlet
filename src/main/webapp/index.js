@@ -5,13 +5,21 @@ var statusTask = undefined;
 var operationId = undefined;
 var statusPending = false;
 
+async function sha256(password) {
+    const passwordEncoded = new TextEncoder().encode(password);
+    const hashBuffer =  await crypto.subtle.digest('SHA-256', passwordEncoded);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
 window.onload = () => {
     document.getElementById('running').style.display = 'none';
 };
 
 document.getElementById('solveButton').onclick = async () => {
     const solveParams = {
-        password: '',
+        passwordHash: await sha256(document.getElementById('password').value),
         parallelMode: document.getElementById('mode').value === 'true',
         input: document.getElementById('input').value,
         regex: document.getElementById('regex').value,
@@ -70,9 +78,11 @@ document.getElementById('solveButton').onclick = async () => {
                     ${elapsedPretty}
                     `;
                 statusPending = false;
+            } else {
+                alert('Error from server getting progress: ' + response.status);
             }
         }, refreshPeriod);
     } else {
-        alert("Error from server: " + solveResponse.status);
+        alert('Error from server starting solve operation: ' + solveResponse.status);
     }
 };
