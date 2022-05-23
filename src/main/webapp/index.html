@@ -31,20 +31,26 @@
         <div class="row g-0 my-3">
             <div class="col-md-auto mx-auto">
                 <div id="form">
-                    <select id="mode" class="form-select text-center mb-2">
-                        <option value="true" selected="selected">Parallel Mode</option>
-                        <option value="false">Sequential Mode</option>
-                    </select>
-                    <select id="minChars" class="form-select text-center mb-2">
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6" selected="selected">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                    </select>
+                    <div class="form-floating mb-2">
+                        <select id="mode" class="form-select text-center">
+                            <option value="true" selected="selected">Parallel</option>
+                            <option value="false">Sequential</option>
+                        </select>
+                        <label for="mode">Run Mode</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <select id="minChars" class="form-select text-center">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6" selected="selected">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                        </select>
+                        <label for="minChars">Minimum characters</label>
+                    </div>
                     <div class="form-floating mb-2">
                         <input id="password" type="password" class="form-control text-center" placeholder="Password" />
                         <label for="password">Password</label>

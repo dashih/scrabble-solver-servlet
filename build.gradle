@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v3.2'
+version 'v3.4'
 
 repositories {
     mavenCentral()
@@ -15,4 +15,14 @@ dependencies {
     implementation group: 'de.mkammerer', name: 'argon2-jvm', version: '2.11'
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+}
+
+task writeVersionFile {
+    doLast {
+        new File("$buildDir/resources/main/version.txt").write(project.version.toString())
+    }
+}
+
+war {
+    dependsOn writeVersionFile
 }

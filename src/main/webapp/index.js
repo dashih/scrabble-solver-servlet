@@ -22,6 +22,7 @@ window.onload = async () => {
         document.getElementById('versions').innerText = 
             `${v.app}
             ${v.tomcat}
+            Java Servlet API ${v.servletApi}
             Java ${v.java}`;
     } else {
         alert('Error getting app info: ' + response.status);

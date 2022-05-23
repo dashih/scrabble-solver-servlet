@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
     description = "A Scrabble solving servlet",
     urlPatterns = { "/api/solve", "/api/getProgress", "/api/getVersions" })
 public final class ScrabbleSolverServlet extends HttpServlet {
-    private static final String APP_VERSION = "v3.2";
     private static final int NUM_THREADS = 2;
+    private static final String VERSION_RESOURCE = "/version.txt";
     private static final String PASSWORD_RESOURCE = "/password.txt";
 
     private final ExecutorService m_executor;
@@ -120,8 +120,20 @@ public final class ScrabbleSolverServlet extends HttpServlet {
 
     private void getVersions(HttpServletRequest request, HttpServletResponse response) throws IOException {
         VersionsResponse v = new VersionsResponse();
-        v.app = APP_VERSION;
+
+        InputStream versionResource = Preconditions.checkNotNull(getClass().getResourceAsStream(VERSION_RESOURCE));
+        String appVersion = null;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(versionResource))) {
+            appVersion = reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read version file.", e);
+        }
+
+        v.app = appVersion;
         v.tomcat = request.getServletContext().getServerInfo();
+        v.servletApi = String.format("%s.%s",
+            request.getServletContext().getEffectiveMajorVersion(),
+            request.getServletContext().getEffectiveMinorVersion());
         v.java = System.getProperty("java.version");
 
         PrintWriter out = response.getWriter();
@@ -150,6 +162,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final class VersionsResponse {
         String app;
         String tomcat;
+        String servletApi;
         String java;
     }
 }
