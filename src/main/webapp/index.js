@@ -13,8 +13,19 @@ async function sha256(password) {
     return hashHex;
 }
 
-window.onload = () => {
+window.onload = async () => {
     document.getElementById('running').style.display = 'none';
+
+    const response = await fetch('/api/getVersions', { method: 'POST' });
+    if (response.ok) {
+        const v = await response.json();
+        document.getElementById('versions').innerText = 
+            `${v.app}
+            ${v.tomcat}
+            Java ${v.java}`;
+    } else {
+        alert('Error getting app info: ' + response.status);
+    }
 };
 
 document.getElementById('solveButton').onclick = async () => {
@@ -55,9 +66,11 @@ document.getElementById('solveButton').onclick = async () => {
                 return;
             }
 
-            const response = await fetch('/api/getProgress?' + new URLSearchParams({
-                id: operationId
-            }));
+            const response = await fetch('/api/getProgress', {
+                method: 'POST',
+                header: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(idJson)
+            });
             if (response.ok) {
                 statusPending = true;
                 let progress = await response.json();

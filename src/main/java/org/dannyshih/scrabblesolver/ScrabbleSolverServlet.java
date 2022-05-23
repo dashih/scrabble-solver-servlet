@@ -5,6 +5,7 @@ import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -22,8 +23,9 @@ import java.util.stream.Collectors;
 @WebServlet(
     name = "Scrabble Solver",
     description = "A Scrabble solving servlet",
-    urlPatterns = { "/api/solve", "/api/getProgress" })
+    urlPatterns = { "/api/solve", "/api/getProgress", "/api/getVersions" })
 public final class ScrabbleSolverServlet extends HttpServlet {
+    private static final String APP_VERSION = "v3.2";
     private static final int NUM_THREADS = 2;
     private static final String PASSWORD_RESOURCE = "/password.txt";
 
@@ -46,9 +48,26 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        switch (request.getServletPath()) {
+            case "/api/getVersions":
+                getVersions(request, response);
+                break;
+            case "/api/solve":
+                solve(request, response);
+                break;
+            case "/api/getProgress":
+                getProgress(request, response);
+                break;
+            default:
+                throw new ServletException("Unexpected path.");
+        }
+    }
+
+    private void solve(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         SolveParams solveParams = m_gson.fromJson(requestBody, SolveParams.class);
+        Preconditions.checkNotNull(solveParams);
         if (!m_passwordHash.equals(solveParams.passwordHash)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Wrong password.");
             return;
@@ -72,9 +91,11 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         out.flush();
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        UUID id = UUID.fromString(request.getParameter("id"));
+    private void getProgress(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        final SolveResponse solveResponse = m_gson.fromJson(requestBody, SolveResponse.class);
+        Preconditions.checkNotNull(solveResponse);
+        UUID id = solveResponse.id;
         Progress progress = m_operations.get(id);
         if (progress != null) {
             if (progress.getRunStatus() == Progress.RunStatus.Failed) {
@@ -97,6 +118,19 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         }
     }
 
+    private void getVersions(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        VersionsResponse v = new VersionsResponse();
+        v.app = APP_VERSION;
+        v.tomcat = request.getServletContext().getServerInfo();
+        v.java = System.getProperty("java.version");
+
+        PrintWriter out = response.getWriter();
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        out.print(m_gson.toJson(v));
+        out.flush();
+    }
+
     private static final class SolveParams {
         String passwordHash;
         boolean parallelMode;
@@ -111,5 +145,11 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         SolveResponse(UUID id) {
             this.id = id;
         }
+    }
+
+    private static final class VersionsResponse {
+        String app;
+        String tomcat;
+        String java;
     }
 }
