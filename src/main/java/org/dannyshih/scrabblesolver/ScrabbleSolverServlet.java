@@ -26,12 +26,14 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final String VERSION_RESOURCE = "/version.txt";
     private static final String PASSWORD_RESOURCE = "/password.txt";
 
+    private final Solver m_solver;
     private final ExecutorService m_executor;
     private final Gson m_gson;
     private final ConcurrentMap<UUID, Progress> m_operations;
     private final String m_passwordHash;
 
-    public ScrabbleSolverServlet() {
+    public ScrabbleSolverServlet() throws IOException {
+        m_solver = new Solver();
         m_executor = Executors.newFixedThreadPool(NUM_THREADS);
         m_gson = new Gson();
         m_operations = new ConcurrentHashMap<>();
@@ -78,7 +80,12 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         m_executor.submit(() -> {
             try {
                 Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
-                new Solver(solveParams.parallelMode, solveParams.minChars, regex).solve(solveParams.input, m_operations.get(res.id));
+                m_solver.solve(
+                    solveParams.input,
+                    solveParams.parallelMode,
+                    solveParams.minChars,
+                    regex,
+                    m_operations.get(res.id));
             } catch (CancellationException ce) {
                 // Catch so status does not get set to Failed.
             } catch (Exception e) {

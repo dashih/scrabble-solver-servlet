@@ -24,18 +24,11 @@ public final class Solver {
     private static final int PERMUTATION_PARALLEL_THRESH = 9;
 
     private final Set<String> m_dictionary;
-    private final boolean m_parallel;
-    private final int m_minCharacters;
-    private final Pattern m_regex;
 
     /**
      * ctor
      */
-    Solver(boolean parallel, int minCharacters, Pattern regex) throws IOException {
-        m_parallel = parallel;
-        m_minCharacters = minCharacters;
-        m_regex = Preconditions.checkNotNull(regex);
-
+    Solver() throws IOException {
         m_dictionary = new HashSet<>();
         populateDictionary();
     }
@@ -43,14 +36,14 @@ public final class Solver {
     /**
      * Solve
      */
-    void solve(String input, Progress progress) {
+    void solve(String input, boolean parallel, int minCharacters, Pattern regex, Progress progress) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
         List<StringBuilder> combinations = new ArrayList<>();
         AtomicLong totalPerms = new AtomicLong(0L);
         getCombinationswithBlanks(new StringBuilder(input), combinations, totalPerms);
         progress.start(totalPerms.get());
-        if (m_parallel) {
+        if (parallel) {
             combinations.parallelStream().forEach(combination -> {
                 if (combination.length() >= PERMUTATION_PARALLEL_THRESH) {
                     List<StringBuilder> permStartPoints = new ArrayList<>();
@@ -61,13 +54,13 @@ public final class Solver {
                     }
 
                     permStartPoints.parallelStream().forEach(
-                            startPoint -> permute(startPoint, 1, progress));
+                            startPoint -> permute(startPoint, 1, minCharacters, regex, progress));
                 } else {
-                    permute(combination, 0, progress);
+                    permute(combination, 0, minCharacters, regex, progress);
                 }
             });
         } else {
-            combinations.forEach(combination -> permute(combination, 0, progress));
+            combinations.forEach(combination -> permute(combination, 0, minCharacters, regex, progress));
         }
 
         progress.finish();
@@ -111,7 +104,7 @@ public final class Solver {
         }
     }
 
-    private void permute(StringBuilder s, int idx, Progress progress) {
+    private void permute(StringBuilder s, int idx, int minCharacters, Pattern regex, Progress progress) {
         if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
             throw new CancellationException();
         }
@@ -120,7 +113,7 @@ public final class Solver {
             String str = s.toString();
 
             // Check if it's a unique solution that meets the criteria.
-            if (m_dictionary.contains(str) && str.length() >= m_minCharacters && m_regex.matcher(str).matches()) {
+            if (m_dictionary.contains(str) && str.length() >= minCharacters && regex.matcher(str).matches()) {
                 progress.addSolution(str);
             }
 
@@ -130,7 +123,7 @@ public final class Solver {
 
         for (int i = idx; i < s.length(); i++) {
             swap(s, idx, i);
-            permute(s, idx + 1, progress);
+            permute(s, idx + 1, minCharacters, regex, progress);
             swap(s, idx, i);
         }
     }
