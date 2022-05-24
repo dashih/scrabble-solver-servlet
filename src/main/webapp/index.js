@@ -79,6 +79,7 @@ document.getElementById('solveButton').onclick = async () => {
                     clearInterval(statusTask);
                     progress['percentDone'] = 100;
                     operation = undefined;
+                    document.getElementById('cancelButton').style.display = 'none';
                     document.getElementById('solutions').innerText =
                         `Found ${progress['solutions'].length} solutions!
 
@@ -101,6 +102,7 @@ document.getElementById('solveButton').onclick = async () => {
                     clearInterval(statusTask);
                     operation = undefined;
                     statusPending = false;
+                    document.getElementById('cancelButton').style.display = 'none';
                     document.getElementById('summary').innerText = 'Canceled!';
                 } else {
                     alert('Error from server getting progress: ' + response.status);
