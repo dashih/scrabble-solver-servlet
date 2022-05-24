@@ -1,6 +1,7 @@
 package org.dannyshih.scrabblesolver;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -20,7 +22,13 @@ import java.util.stream.Collectors;
 @WebServlet(
     name = "Scrabble Solver",
     description = "A Scrabble solving servlet",
-    urlPatterns = { "/api/solve", "/api/getProgress", "/api/getVersions", "/api/cancel" })
+    urlPatterns = {
+        "/api/solve",
+        "/api/getProgress",
+        "/api/getVersions",
+        "/api/getCurrentlyRunning",
+        "/api/cancel"
+    })
 public final class ScrabbleSolverServlet extends HttpServlet {
     private static final int NUM_THREADS = 2;
     private static final String VERSION_RESOURCE = "/version.txt";
@@ -29,7 +37,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private final Solver m_solver;
     private final ExecutorService m_executor;
     private final Gson m_gson;
-    private final ConcurrentMap<UUID, Progress> m_operations;
+    private final ConcurrentMap<UUID, Operation> m_operations;
     private final String m_passwordHash;
 
     public ScrabbleSolverServlet() throws IOException {
@@ -51,6 +59,9 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         switch (request.getServletPath()) {
             case "/api/getVersions":
                 getVersions(request, response);
+                break;
+            case "/api/getCurrentlyRunning":
+                getCurrentlyRunning(request, response);
                 break;
             case "/api/solve":
                 solve(request, response);
@@ -76,7 +87,10 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         }
 
         final SolveResponse res = new SolveResponse(UUID.randomUUID());
-        m_operations.put(res.id, new Progress());
+        final Operation op = new Operation();
+        op.params = solveParams;
+        op.progress = new Progress();
+        m_operations.put(res.id, op);
         m_executor.submit(() -> {
             try {
                 Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
@@ -85,11 +99,11 @@ public final class ScrabbleSolverServlet extends HttpServlet {
                     solveParams.parallelMode,
                     solveParams.minChars,
                     regex,
-                    m_operations.get(res.id));
+                    m_operations.get(res.id).progress);
             } catch (CancellationException ce) {
                 // Catch so status does not get set to Failed.
             } catch (Exception e) {
-                m_operations.get(res.id).finish(e);
+                m_operations.get(res.id).progress.finish(e);
             }
         });
 
@@ -105,28 +119,27 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         final SolveResponse solveResponse = m_gson.fromJson(requestBody, SolveResponse.class);
         Preconditions.checkNotNull(solveResponse);
         UUID id = solveResponse.id;
-        Progress progress = m_operations.get(id);
-        if (progress != null) {
+        Operation op = m_operations.get(id);
+        if (op != null) {
+            Progress progress = op.progress;
             if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
                 response.sendError(HttpServletResponse.SC_GONE, "Operation canceled");
-                m_operations.remove(id);
                 return;
             }
 
             if (progress.getRunStatus() == Progress.RunStatus.Failed) {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, progress.getError().getMessage());
-                m_operations.remove(id);
                 return;
             }
 
-            if (progress.getRunStatus() == Progress.RunStatus.Done) {
-                m_operations.remove(id);
-            }
+            GetResponse res = new GetResponse();
+            res.params = op.params;
+            res.progress = progress.toSerializable();
 
             PrintWriter out = response.getWriter();
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            out.print(progress.toJson());
+            out.print(m_gson.toJson(res));
             out.flush();
         } else {
             log("didn't find running operation");
@@ -137,11 +150,11 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         final String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         final SolveResponse solveResponse = m_gson.fromJson(requestBody, SolveResponse.class);
         Preconditions.checkNotNull(solveResponse);
-        Progress progress = m_operations.get(solveResponse.id);
-        if (progress == null) {
+        Operation op = m_operations.get(solveResponse.id);
+        if (op == null) {
             log("didn't find operation to cancel");
         } else {
-            progress.cancel();
+            op.progress.cancel();
         }
     }
 
@@ -170,6 +183,22 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         out.flush();
     }
 
+    private void getCurrentlyRunning(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        CurrentlyRunningResponse res = new CurrentlyRunningResponse();
+        res.ids = ImmutableList.copyOf(m_operations.keySet());
+
+        PrintWriter out = response.getWriter();
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        out.print(m_gson.toJson(res));
+        out.flush();
+    }
+
+    private static final class Operation {
+        SolveParams params;
+        Progress progress;
+    }
+
     private static final class SolveParams {
         String passwordHash;
         boolean parallelMode;
@@ -186,10 +215,19 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         }
     }
 
+    private static final class GetResponse {
+        SolveParams params;
+        Progress.SerializableProgress progress;
+    }
+
     private static final class VersionsResponse {
         String app;
         String tomcat;
         String servletApi;
         String java;
+    }
+
+    private static final class CurrentlyRunningResponse {
+        List<UUID> ids;
     }
 }

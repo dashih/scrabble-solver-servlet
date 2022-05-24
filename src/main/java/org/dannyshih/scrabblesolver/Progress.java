@@ -2,11 +2,9 @@ package org.dannyshih.scrabblesolver;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +14,6 @@ final class Progress {
     private final ConcurrentMap<String, Boolean> m_solutions;
     private final AtomicLong m_total;
     private final AtomicLong m_processed;
-    private final Gson m_gson;
     private final Stopwatch m_stopwatch;
 
     private Exception m_exception;
@@ -27,7 +24,6 @@ final class Progress {
         m_solutions = new ConcurrentHashMap<>();
         m_total = new AtomicLong();
         m_processed = new AtomicLong();
-        m_gson = new Gson();
         m_stopwatch = Stopwatch.createUnstarted();
         m_runStatus = RunStatus.Starting;
     }
@@ -68,7 +64,7 @@ final class Progress {
         m_runStatus = RunStatus.Done;
     }
 
-    String toJson() {
+    SerializableProgress toSerializable() {
         SerializableProgress sp = new SerializableProgress();
         sp.runStatus = m_runStatus;
         if (m_runStatus == RunStatus.Starting) {
@@ -82,7 +78,7 @@ final class Progress {
             sp.elapsed = m_stopwatch.elapsed(TimeUnit.MILLISECONDS);
         }
 
-        return m_gson.toJson(sp);
+        return sp;
     }
 
     enum RunStatus {
@@ -93,7 +89,7 @@ final class Progress {
         Done
     }
 
-    private static final class SerializableProgress {
+    static final class SerializableProgress {
         RunStatus runStatus;
         List<String> solutions;
         long total;

@@ -15,6 +15,7 @@ async function sha256(password) {
 
 window.onload = async () => {
     document.getElementById('running').style.display = 'none';
+    document.getElementById('currentlyRunningDiv').style.display = 'none';
 
     const response = await fetch('/api/getVersions', { method: 'POST' });
     if (response.ok) {
@@ -27,7 +28,88 @@ window.onload = async () => {
     } else {
         alert('Error getting app info: ' + response.status);
     }
+
+    const responseCr = await fetch('/api/getCurrentlyRunning', { method: 'POST' });
+    if (responseCr.ok) {
+        const currentlyRunning = await responseCr.json();
+        if (currentlyRunning.ids.length > 0) {
+            for (const id of currentlyRunning.ids) {
+                const op = document.createElement('option');
+                op.value = id;
+                op.text = id;
+                document.getElementById('currentlyRunning').appendChild(op);
+            }
+
+            document.getElementById('currentlyRunningDiv').style.display = 'block';
+        }
+    } else {
+        alert('Error getting currently running operations: ' + response.status);
+    }
 };
+
+function watchOperation() {
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('running').style.display = 'block';
+    document.getElementById('summary').innerText = 'Initializing';
+    statusTask = setInterval(async () => {
+        if (statusPending) {
+            return;
+        }
+
+        const response = await fetch('/api/getProgress', {
+            method: 'POST',
+            header: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(operation)
+        });
+        if (response.ok) {
+            statusPending = true;
+            const responseJson = await response.json();
+            const progress = responseJson.progress;
+            const solveParams = responseJson.params;
+
+            document.getElementById('summary').innerText =
+                `${solveParams.input}
+                ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
+                ${solveParams.minChars}-chars or greater
+                Matching ${solveParams.regex}
+                `;
+            
+            document.getElementById('solutions').innerText = '';
+            if (progress['runStatus'] == 'Done') {
+                clearInterval(statusTask);
+                progress['percentDone'] = 100;
+                operation = undefined;
+                document.getElementById('cancelButton').style.display = 'none';
+                document.getElementById('solutions').innerText =
+                    `Found ${progress['solutions'].length} solutions!
+
+                `;
+            }
+
+            for (let i = 0; i < progress['solutions'].length; i++) {
+                document.getElementById('solutions').innerText += progress['solutions'][i] + '\n';
+            }
+
+            let elapsedPretty = new Date(progress['elapsed']).toISOString().substring(11, 19);
+            document.getElementById('progressBar').value = progress['percentDone'];
+            document.getElementById('progressText').innerText =
+                `${progress['percentDone'].toFixed(1)}% of ${progress['total'].toLocaleString()}
+                ${elapsedPretty}
+                `;
+            statusPending = false;
+        } else {
+            if (response.status === 410) {
+                clearInterval(statusTask);
+                operation = undefined;
+                statusPending = false;
+                document.getElementById('cancelButton').style.display = 'none';
+                document.getElementById('summary').innerText = 'Canceled!';
+            } else {
+                alert('Error from server getting progress: ' + response.status);
+            }
+        }
+    }, refreshPeriod);
+}
 
 document.getElementById('solveButton').onclick = async () => {
     const solveParams = {
@@ -53,62 +135,7 @@ document.getElementById('solveButton').onclick = async () => {
     });
     if (solveResponse.ok) {
         operation = await solveResponse.json();
-        document.getElementById('summary').innerText =
-            `${solveParams.input}
-            ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
-            ${solveParams.minChars}-chars or greater
-            Matching ${solveParams.regex}
-            `;
-        document.getElementById('form').style.display = 'none';
-        document.getElementById('running').style.display = 'block';
-        statusTask = setInterval(async () => {
-            if (statusPending) {
-                return;
-            }
-
-            const response = await fetch('/api/getProgress', {
-                method: 'POST',
-                header: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(operation)
-            });
-            if (response.ok) {
-                statusPending = true;
-                let progress = await response.json();
-                document.getElementById('solutions').innerText = '';
-                if (progress['runStatus'] == 'Done') {
-                    clearInterval(statusTask);
-                    progress['percentDone'] = 100;
-                    operation = undefined;
-                    document.getElementById('cancelButton').style.display = 'none';
-                    document.getElementById('solutions').innerText =
-                        `Found ${progress['solutions'].length} solutions!
-
-                    `;
-                }
-
-                for (let i = 0; i < progress['solutions'].length; i++) {
-                    document.getElementById('solutions').innerText += progress['solutions'][i] + '\n';
-                }
-
-                let elapsedPretty = new Date(progress['elapsed']).toISOString().substring(11, 19);
-                document.getElementById('progressBar').value = progress['percentDone'];
-                document.getElementById('progressText').innerText =
-                    `${progress['percentDone'].toFixed(1)}% of ${progress['total'].toLocaleString()}
-                    ${elapsedPretty}
-                    `;
-                statusPending = false;
-            } else {
-                if (response.status === 410) {
-                    clearInterval(statusTask);
-                    operation = undefined;
-                    statusPending = false;
-                    document.getElementById('cancelButton').style.display = 'none';
-                    document.getElementById('summary').innerText = 'Canceled!';
-                } else {
-                    alert('Error from server getting progress: ' + response.status);
-                }
-            }
-        }, refreshPeriod);
+        watchOperation();
     } else {
         alert('Error from server starting solve operation: ' + solveResponse.status);
     }
@@ -131,3 +158,11 @@ document.getElementById('cancelButton').onclick = async () => {
         alert('Error cancelling operation: ' + response.status);
     }
 };
+
+document.getElementById('currentlyRunning').onclick = () => {
+    operation = {
+        id: document.getElementById('currentlyRunning').value
+    };
+
+    watchOperation();
+}
