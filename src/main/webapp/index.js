@@ -33,6 +33,11 @@ window.onload = async () => {
     if (responseCr.ok) {
         const currentlyRunning = await responseCr.json();
         if (currentlyRunning.ids.length > 0) {
+            // Blank option first, so user must select one to watch.
+            const defOp = document.createElement('option');
+            defOp.value = '';
+            defOp.text = '';
+            document.getElementById('currentlyRunning').appendChild(defOp);
             for (const id of currentlyRunning.ids) {
                 const op = document.createElement('option');
                 op.value = id;
@@ -159,7 +164,7 @@ document.getElementById('cancelButton').onclick = async () => {
     }
 };
 
-document.getElementById('currentlyRunning').onclick = () => {
+document.getElementById('currentlyRunning').onchange = () => {
     operation = {
         id: document.getElementById('currentlyRunning').value
     };
