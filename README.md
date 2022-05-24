@@ -8,6 +8,7 @@ A Java servlet for cheating at scrabble =)
 | 2       | Bootstrap 5 UI overhaul |
 | 3       | Security - password authentication |
 | 4       | Cancelable operations |
+| 5       | Reconnect to running operations |
 
 ## Performance
 For 7 letters including 2 blanks, modern hardware has no problem producing a complete solution in seconds. But for larger inputs, the problem becomes interesting from a performance/parallelism perspective.
