@@ -13,17 +13,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @WebServlet(
     name = "Scrabble Solver",
     description = "A Scrabble solving servlet",
-    urlPatterns = { "/api/solve", "/api/getProgress", "/api/getVersions" })
+    urlPatterns = { "/api/solve", "/api/getProgress", "/api/getVersions", "/api/cancel" })
 public final class ScrabbleSolverServlet extends HttpServlet {
     private static final int NUM_THREADS = 2;
     private static final String VERSION_RESOURCE = "/version.txt";
@@ -59,6 +56,9 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             case "/api/getProgress":
                 getProgress(request, response);
                 break;
+            case "/api/cancel":
+                cancel(request, response);
+                break;
             default:
                 throw new ServletException("Unexpected path.");
         }
@@ -79,6 +79,8 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             try {
                 Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
                 new Solver(solveParams.parallelMode, solveParams.minChars, regex).solve(solveParams.input, m_operations.get(res.id));
+            } catch (CancellationException ce) {
+                // Catch so status does not get set to Failed.
             } catch (Exception e) {
                 m_operations.get(res.id).finish(e);
             }
@@ -98,6 +100,12 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         UUID id = solveResponse.id;
         Progress progress = m_operations.get(id);
         if (progress != null) {
+            if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
+                response.sendError(HttpServletResponse.SC_GONE, "Operation canceled");
+                m_operations.remove(id);
+                return;
+            }
+
             if (progress.getRunStatus() == Progress.RunStatus.Failed) {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, progress.getError().getMessage());
                 m_operations.remove(id);
@@ -115,6 +123,18 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             out.flush();
         } else {
             log("didn't find running operation");
+        }
+    }
+
+    private void cancel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        final SolveResponse solveResponse = m_gson.fromJson(requestBody, SolveResponse.class);
+        Preconditions.checkNotNull(solveResponse);
+        Progress progress = m_operations.get(solveResponse.id);
+        if (progress == null) {
+            log("didn't find operation to cancel");
+        } else {
+            progress.cancel();
         }
     }
 

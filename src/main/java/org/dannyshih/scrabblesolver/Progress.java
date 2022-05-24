@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,10 @@ final class Progress {
         m_solutions.putIfAbsent(solution, true);
     }
 
+    void cancel() {
+        m_runStatus = RunStatus.Canceled;
+    }
+
     void finish(Exception exception) {
         m_runStatus = RunStatus.Failed;
         m_exception = exception;
@@ -83,6 +88,7 @@ final class Progress {
     enum RunStatus {
         Starting,
         Running,
+        Canceled,
         Failed,
         Done
     }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
@@ -111,6 +112,10 @@ public final class Solver {
     }
 
     private void permute(StringBuilder s, int idx, Progress progress) {
+        if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
+            throw new CancellationException();
+        }
+
         if (idx == s.length()) {
             String str = s.toString();
 

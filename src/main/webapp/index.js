@@ -2,7 +2,7 @@
 
 const refreshPeriod = 500; // ms
 var statusTask = undefined;
-var operationId = undefined;
+var operation = undefined;
 var statusPending = false;
 
 async function sha256(password) {
@@ -52,8 +52,7 @@ document.getElementById('solveButton').onclick = async () => {
         body: JSON.stringify(solveParams)
     });
     if (solveResponse.ok) {
-        let idJson = await solveResponse.json();
-        operationId = idJson['id'];
+        operation = await solveResponse.json();
         document.getElementById('summary').innerText =
             `${solveParams.input}
             ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
@@ -70,7 +69,7 @@ document.getElementById('solveButton').onclick = async () => {
             const response = await fetch('/api/getProgress', {
                 method: 'POST',
                 header: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(idJson)
+                body: JSON.stringify(operation)
             });
             if (response.ok) {
                 statusPending = true;
@@ -79,7 +78,7 @@ document.getElementById('solveButton').onclick = async () => {
                 if (progress['runStatus'] == 'Done') {
                     clearInterval(statusTask);
                     progress['percentDone'] = 100;
-                    operationId = undefined;
+                    operation = undefined;
                     document.getElementById('solutions').innerText =
                         `Found ${progress['solutions'].length} solutions!
 
@@ -98,10 +97,35 @@ document.getElementById('solveButton').onclick = async () => {
                     `;
                 statusPending = false;
             } else {
-                alert('Error from server getting progress: ' + response.status);
+                if (response.status === 410) {
+                    clearInterval(statusTask);
+                    operation = undefined;
+                    statusPending = false;
+                    document.getElementById('summary').innerText = 'Canceled!';
+                } else {
+                    alert('Error from server getting progress: ' + response.status);
+                }
             }
         }, refreshPeriod);
     } else {
         alert('Error from server starting solve operation: ' + solveResponse.status);
+    }
+};
+
+document.getElementById('cancelButton').onclick = async () => {
+    if (operation === undefined) {
+        alert('No ongoing operation.');
+        return;
+    }
+
+    const response = await fetch('/api/cancel', {
+        method: 'POST',
+        header: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(operation)
+    });
+    if (response.ok) {
+        document.getElementById('summary').innerText = 'Cancellation pending...';
+    } else {
+        alert('Error cancelling operation: ' + response.status);
     }
 };
