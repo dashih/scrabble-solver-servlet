@@ -33,12 +33,14 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final int NUM_THREADS = 2;
     private static final String VERSION_RESOURCE = "/version.txt";
     private static final String PASSWORD_RESOURCE = "/password.txt";
+    private static final long REAP_PERIOD = 1; // minute
 
     private final Solver m_solver;
     private final ExecutorService m_executor;
     private final Gson m_gson;
     private final ConcurrentMap<UUID, Operation> m_operations;
     private final String m_passwordHash;
+    private final ScheduledExecutorService m_reaper;
 
     public ScrabbleSolverServlet() throws IOException {
         m_solver = new Solver();
@@ -52,6 +54,17 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read credentials file.", e);
         }
+
+        m_reaper = Executors.newSingleThreadScheduledExecutor();
+        m_reaper.scheduleAtFixedRate(() -> {
+            m_operations.keySet().forEach(id -> {
+                final Operation op = m_operations.get(id);
+                if (!(op.progress.getRunStatus() == Progress.RunStatus.Starting ||
+                        op.progress.getRunStatus() == Progress.RunStatus.Running)) {
+                    m_operations.remove(id);
+                }
+            });
+        }, REAP_PERIOD, REAP_PERIOD, TimeUnit.MINUTES);
     }
 
     @Override
