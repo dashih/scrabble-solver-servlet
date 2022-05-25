@@ -4,6 +4,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -17,8 +18,8 @@ final class Progress {
     private final Stopwatch m_stopwatch;
 
     private Exception m_exception;
-
     private RunStatus m_runStatus;
+    private Date m_finished;
 
     Progress() {
         m_solutions = new ConcurrentHashMap<>();
@@ -42,6 +43,10 @@ final class Progress {
         return m_exception;
     }
 
+    Date getFinishedDate() {
+        return m_finished;
+    }
+
     void increment() {
         m_processed.incrementAndGet();
     }
@@ -52,16 +57,19 @@ final class Progress {
 
     void cancel() {
         m_runStatus = RunStatus.Canceled;
+        m_finished = new Date();
     }
 
     void finish(Exception exception) {
         m_runStatus = RunStatus.Failed;
         m_exception = exception;
+        m_finished = new Date();
     }
 
     void finish() {
         m_stopwatch.stop();
         m_runStatus = RunStatus.Done;
+        m_finished = new Date();
     }
 
     SerializableProgress toSerializable() {

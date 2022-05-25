@@ -14,6 +14,10 @@ progress {
     width: 90%
 }
 
+.summary {
+    font-size: small;
+}
+
 .version {
     font-size: x-small;
 }

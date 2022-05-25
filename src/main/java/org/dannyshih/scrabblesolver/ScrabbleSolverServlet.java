@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -34,13 +35,13 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final String VERSION_RESOURCE = "/version.txt";
     private static final String PASSWORD_RESOURCE = "/password.txt";
     private static final long REAP_PERIOD = 1; // minute
+    private static final long DONE_KEEP_DAYS = 7; // days
 
     private final Solver m_solver;
     private final ExecutorService m_executor;
     private final Gson m_gson;
     private final ConcurrentMap<UUID, Operation> m_operations;
     private final String m_passwordHash;
-    private final ScheduledExecutorService m_reaper;
 
     public ScrabbleSolverServlet() throws IOException {
         m_solver = new Solver();
@@ -55,13 +56,22 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             throw new RuntimeException("Failed to read credentials file.", e);
         }
 
-        m_reaper = Executors.newSingleThreadScheduledExecutor();
-        m_reaper.scheduleAtFixedRate(() -> {
+        ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor();
+        reaper.scheduleAtFixedRate(() -> {
             m_operations.keySet().forEach(id -> {
                 final Operation op = m_operations.get(id);
-                if (!(op.progress.getRunStatus() == Progress.RunStatus.Starting ||
-                        op.progress.getRunStatus() == Progress.RunStatus.Running)) {
-                    m_operations.remove(id);
+                switch (op.progress.getRunStatus()) {
+                    case Canceled:
+                    case Failed:
+                        m_operations.remove(id);
+                        break;
+                    case Done:
+                        final long ageMs = new Date().getTime() - op.progress.getFinishedDate().getTime();
+                        final long ageDays = TimeUnit.DAYS.convert(ageMs, TimeUnit.MILLISECONDS);
+                        if (ageDays > DONE_KEEP_DAYS) {
+                            m_operations.remove(id);
+                        }
+                        break;
                 }
             });
         }, REAP_PERIOD, REAP_PERIOD, TimeUnit.MINUTES);
@@ -120,11 +130,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             }
         });
 
-        PrintWriter out = response.getWriter();
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        out.print(m_gson.toJson(res));
-        out.flush();
+        respond(response, res);
     }
 
     private void getProgress(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -149,11 +155,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             res.params = op.params;
             res.progress = progress.toSerializable();
 
-            PrintWriter out = response.getWriter();
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            out.print(m_gson.toJson(res));
-            out.flush();
+            respond(response, res);
         } else {
             log("didn't find running operation");
         }
@@ -189,21 +191,20 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             request.getServletContext().getEffectiveMinorVersion());
         v.java = System.getProperty("java.version");
 
-        PrintWriter out = response.getWriter();
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        out.print(m_gson.toJson(v));
-        out.flush();
+        respond(response, v);
     }
 
     private void getCurrentlyRunning(HttpServletRequest request, HttpServletResponse response) throws IOException {
         CurrentlyRunningResponse res = new CurrentlyRunningResponse();
         res.ids = ImmutableList.copyOf(m_operations.keySet());
+        respond(response, res);
+    }
 
+    private void respond(HttpServletResponse response, Object obj) throws IOException {
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        out.print(m_gson.toJson(res));
+        out.print(m_gson.toJson(obj));
         out.flush();
     }
 

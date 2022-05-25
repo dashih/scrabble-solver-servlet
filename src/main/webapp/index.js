@@ -73,7 +73,8 @@ function watchOperation() {
             const solveParams = responseJson.params;
 
             document.getElementById('summary').innerText =
-                `${solveParams.input}
+                `${operation.id}
+                ${solveParams.input}
                 ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
                 ${solveParams.minChars}-chars or greater
                 Matching ${solveParams.regex}
