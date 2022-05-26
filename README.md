@@ -19,4 +19,4 @@ The solver generates all combinations including blanks, then uses parallelStream
 Additionally, if a given combination is large enough, it further uses parallelStream() to parallelize the actual permuting. Specifically, the algorithm considers each character in the string and swaps it to the front to create a starting point. Then it parallelize permuting these starting points, leaving the first character alone.
 
 ### Benchmarks
-TODO
+![Alt text](readme-img/cpu-max.png?raw=true)
