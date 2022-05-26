@@ -10,6 +10,15 @@ A Java servlet for cheating at scrabble =)
 | 4       | Cancelable operations |
 | 5       | Reconnect to running operations |
 
+## Deployment
+The project includes a dictionary: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary.
+
+The project expects `src/main/resources/password.txt` to contain the password used to authenticate users submitting a solve operation. This file must be present prior to building the war.
+
+`./gradlew war`
+
+Deploy in any container server (tested on Tomcat 8 and 9).
+
 ## Performance
 For 7 letters including 2 blanks, modern hardware has no problem producing a complete solution in seconds. But for larger inputs, the problem becomes interesting from a performance/parallelism perspective.
 
