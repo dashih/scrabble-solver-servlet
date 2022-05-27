@@ -29,10 +29,13 @@ Additionally, if a given combination is large enough, it further uses parallelSt
 
 ### Benchmarks
 The longest scrabble word (15 characters):
+
 ![Alt text](readme-img/longest-scrabble-word.png?raw=true)
 
 2-blank 11 characters:
+
 ![Alt text](readme-img/11chars-2blanks.png?raw=true)
 
 The CPUs:
+
 ![Alt text](readme-img/cpu-max.png?raw=true)
