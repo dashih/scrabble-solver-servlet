@@ -28,4 +28,11 @@ The solver generates all combinations including blanks, then uses parallelStream
 Additionally, if a given combination is large enough, it further uses parallelStream() to parallelize the actual permuting. Specifically, the algorithm considers each character in the string and swaps it to the front to create a starting point. Then it parallelize permuting these starting points, leaving the first character alone.
 
 ### Benchmarks
+The longest scrabble word (15 characters):
+![Alt text](readme-img/longest-scrabble-word.png?raw=true)
+
+2-blank 11 characters:
+![Alt text](readme-img/11chars-2blanks.png?raw=true)
+
+The CPUs:
 ![Alt text](readme-img/cpu-max.png?raw=true)
