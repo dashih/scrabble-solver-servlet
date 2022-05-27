@@ -32,16 +32,16 @@ window.onload = async () => {
     const responseCr = await fetch('/api/getCurrentlyRunning', { method: 'POST' });
     if (responseCr.ok) {
         const currentlyRunning = await responseCr.json();
-        if (currentlyRunning.ids.length > 0) {
+        if (Object.keys(currentlyRunning.operations).length > 0) {
             // Blank option first, so user must select one to watch.
             const defOp = document.createElement('option');
             defOp.value = '';
             defOp.text = '';
             document.getElementById('currentlyRunning').appendChild(defOp);
-            for (const id of currentlyRunning.ids) {
+            for (const key of Object.keys(currentlyRunning.operations)) {
                 const op = document.createElement('option');
-                op.value = id;
-                op.text = id;
+                op.value = key;
+                op.text = currentlyRunning.operations[key];
                 document.getElementById('currentlyRunning').appendChild(op);
             }
 
@@ -73,8 +73,7 @@ function watchOperation() {
             const solveParams = responseJson.params;
 
             document.getElementById('summary').innerText =
-                `${operation.id}
-                ${solveParams.input}
+                `${solveParams.input}
                 ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
                 ${solveParams.minChars}-chars or greater
                 Matching ${solveParams.regex}

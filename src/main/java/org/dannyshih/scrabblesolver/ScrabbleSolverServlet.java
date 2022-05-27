@@ -13,9 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -196,7 +194,8 @@ public final class ScrabbleSolverServlet extends HttpServlet {
 
     private void getCurrentlyRunning(HttpServletRequest request, HttpServletResponse response) throws IOException {
         CurrentlyRunningResponse res = new CurrentlyRunningResponse();
-        res.ids = ImmutableList.copyOf(m_operations.keySet());
+        res.operations = new HashMap<>();
+        m_operations.forEach((key, value) -> res.operations.put(key, value.params.input));
         respond(response, res);
     }
 
@@ -242,6 +241,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     }
 
     private static final class CurrentlyRunningResponse {
-        List<UUID> ids;
+        Map<UUID, String> operations;
     }
 }
