@@ -9,13 +9,12 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 final class Progress {
     private final ConcurrentMap<String, Boolean> m_solutions;
-    private final AtomicLong m_total;
     private final Stopwatch m_stopwatch;
 
+    private long m_total;
     private long m_numProcessed;
     private Exception m_exception;
     private RunStatus m_runStatus;
@@ -23,14 +22,14 @@ final class Progress {
 
     Progress() {
         m_solutions = new ConcurrentHashMap<>();
-        m_total = new AtomicLong();
+        m_total = 0L;
         m_numProcessed = 0L;
         m_stopwatch = Stopwatch.createUnstarted();
         m_runStatus = RunStatus.Starting;
     }
 
     void start(long goal) {
-        m_total.set(goal);
+        m_total = goal;
         m_stopwatch.start();
         m_runStatus = RunStatus.Running;
     }
@@ -81,8 +80,8 @@ final class Progress {
         } else {
             sp.solutions = new ArrayList<>(m_solutions.keySet());
             sp.solutions.sort((word0, word1) -> word1.length() - word0.length());
-            sp.total = m_total.get();
-            sp.percentDone = ((float)m_numProcessed / m_total.get()) * 100.0f;
+            sp.total = m_total;
+            sp.percentDone = ((float)m_numProcessed / m_total) * 100.0f;
             sp.elapsed = m_stopwatch.elapsed(TimeUnit.MILLISECONDS);
         }
 

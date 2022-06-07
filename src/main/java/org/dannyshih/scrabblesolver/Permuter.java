@@ -29,7 +29,7 @@ public final class Permuter extends RecursiveTask<Long> {
     @Override
     protected Long compute() {
         if (m_sb.length() <= THRESHOLD) {
-            return permute(m_sb, m_idx);
+            return Solver.permute(m_sb, m_idx, m_minCharacters, m_regex, m_progress, m_dictionary);
         } else {
             return ForkJoinTask.invokeAll(createSubtasks()).stream().mapToLong(ForkJoinTask::join).sum();
         }
@@ -38,37 +38,11 @@ public final class Permuter extends RecursiveTask<Long> {
     private List<Permuter> createSubtasks() {
         final List<Permuter> subtasks = new ArrayList<>();
         for (int i = m_idx; i < m_sb.length(); i++) {
-            swap(m_sb, m_idx, i);
+            Solver.swap(m_sb, m_idx, i);
             subtasks.add(new Permuter(new StringBuilder(m_sb), m_idx + 1, m_dictionary, m_minCharacters, m_regex, m_progress));
-            swap(m_sb, m_idx, i);
+            Solver.swap(m_sb, m_idx, i);
         }
 
         return subtasks;
-    }
-
-    private long permute(StringBuilder s, int idx) {
-        if (idx == s.length()) {
-            String str = s.toString();
-            if (m_dictionary.contains(str) && str.length() >= m_minCharacters &&  m_regex.matcher(str).matches()) {
-                m_progress.addSolution(str);
-            }
-
-            return 1L;
-        }
-
-        long res = 0L;
-        for (int i = idx; i < s.length(); i++) {
-            swap(s, idx, i);
-            res += permute(s, idx + 1);
-            swap(s, idx, i);
-        }
-
-        return res;
-    }
-
-    private static void swap(StringBuilder s, int idx0, int idx1) {
-        char tmp = s.charAt(idx0);
-        s.setCharAt(idx0, s.charAt(idx1));
-        s.setCharAt(idx1, tmp);
     }
 }

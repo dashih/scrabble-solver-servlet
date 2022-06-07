@@ -21,7 +21,7 @@ import com.google.common.math.BigIntegerMath;
 
 import javax.servlet.ServletContext;
 
-public final class Solver {
+class Solver {
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private final Set<String> m_dictionary;
@@ -36,25 +36,25 @@ public final class Solver {
         m_pool = ForkJoinPool.commonPool();
     }
 
-    /**
-     * Solve
-     */
     void solve(String input, boolean parallel, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
         final List<StringBuilder> combinations = new ArrayList<>();
-        final AtomicLong totalPerms = new AtomicLong(0L);
-        getCombinationswithBlanks(new StringBuilder(input), combinations, totalPerms);
-        progress.start(totalPerms.get());
+        final AtomicLong totalPermutations = new AtomicLong();
+        generateCombinationsWithBlanks(new StringBuilder(input), totalPermutations, combinations);
+        progress.start(totalPermutations.get());
+        ctx.log("generated combinations: " + combinations.size());
         if (parallel) {
             final List<ForkJoinTask<Long>> tasks = new ArrayList<>();
-            combinations.forEach(combination -> {
-                tasks.add(m_pool.submit(new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress)));
-            });
+            combinations.forEach(combination ->
+                tasks.add(m_pool.submit(new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress))));
 
             tasks.forEach(task -> progress.addNumProcessed(task.join()));
         } else {
-            combinations.forEach(combination -> permute(combination, 0, minCharacters, regex, progress));
+            combinations.forEach(combination -> {
+                long numJustProcessed = permute(combination, 0, minCharacters, regex, progress, m_dictionary);
+                progress.addNumProcessed(numJustProcessed);
+            });
         }
 
         progress.finish();
@@ -67,64 +67,66 @@ public final class Solver {
         }
     }
 
-    private static void getCombinationswithBlanks(
-        StringBuilder s, List<StringBuilder> combinations, AtomicLong totalPermutations) {
+    private static void generateCombinationsWithBlanks(
+        StringBuilder sb, AtomicLong totalPermutations, List<StringBuilder> combinations) {
 
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == '*') {
+        for (int i = 0; i < sb.length(); i++) {
+            if (sb.charAt(i) == '*') {
                 for (char c : ALPHABET.toCharArray()) {
-                    s.setCharAt(i, c);
-                    getCombinationswithBlanks(s, combinations, totalPermutations);
+                    sb.setCharAt(i, c);
+                    generateCombinationsWithBlanks(sb, totalPermutations, combinations);
                 }
 
                 return;
             }
         }
 
-        getCombinations(s, new StringBuilder(), 0, combinations, totalPermutations);
+        getCombinations(sb, new StringBuilder(), 0, totalPermutations, combinations);
     }
 
     private static void getCombinations(
-        StringBuilder s, StringBuilder build, int idx, List<StringBuilder> combinations, AtomicLong totalPermutations) {
+        StringBuilder sb, StringBuilder build, int idx, AtomicLong totalPermutations, List<StringBuilder> combinations) {
 
-        for (int i = idx; i < s.length(); i++) {
-            build.append(s.charAt(i));
+        for (int i = idx; i < sb.length(); i++) {
+            build.append(sb.charAt(i));
 
             combinations.add(new StringBuilder(build));
             totalPermutations.addAndGet(BigIntegerMath.factorial(build.length()).longValueExact());
 
-            getCombinations(s, build, i + 1, combinations, totalPermutations);
+            getCombinations(sb, build, i + 1, totalPermutations, combinations);
             build.deleteCharAt(build.length() - 1);
         }
     }
 
-    private void permute(StringBuilder s, int idx, int minCharacters, Pattern regex, Progress progress) {
+    static long permute(StringBuilder sb, int idx, int minCharacters, Pattern regex, Progress progress, Set<String> dictionary) {
         if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
             throw new CancellationException();
         }
 
-        if (idx == s.length()) {
-            String str = s.toString();
+        if (idx == sb.length()) {
+            String str = sb.toString();
 
             // Check if it's a unique solution that meets the criteria.
-            if (m_dictionary.contains(str) && str.length() >= minCharacters && regex.matcher(str).matches()) {
+            if (dictionary.contains(str) && str.length() >= minCharacters && regex.matcher(str).matches()) {
                 progress.addSolution(str);
             }
 
-            progress.addNumProcessed(1L);
-            return;
+            return 1L;
         }
 
-        for (int i = idx; i < s.length(); i++) {
-            swap(s, idx, i);
-            permute(s, idx + 1, minCharacters, regex, progress);
-            swap(s, idx, i);
+        long numProcessed = 0L;
+        for (int i = idx; i < sb.length(); i++) {
+            swap(sb, idx, i);
+            numProcessed += permute(sb, idx + 1, minCharacters, regex, progress, dictionary);
+            swap(sb, idx, i);
         }
+
+        return numProcessed;
     }
 
-    private static void swap(StringBuilder s, int idx0, int idx1) {
-        char tmp = s.charAt(idx0);
-        s.setCharAt(idx0, s.charAt(idx1));
-        s.setCharAt(idx1, tmp);
+    static void swap(StringBuilder sb, int idx0, int idx1) {
+        char tmp = sb.charAt(idx0);
+        sb.setCharAt(idx0, sb.charAt(idx1));
+        sb.setCharAt(idx1, tmp);
     }
 }

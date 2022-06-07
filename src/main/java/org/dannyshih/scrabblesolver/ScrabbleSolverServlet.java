@@ -1,7 +1,6 @@
 package org.dannyshih.scrabblesolver;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -11,10 +10,23 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -102,12 +114,10 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         SolveParams solveParams = m_gson.fromJson(requestBody, SolveParams.class);
         Preconditions.checkNotNull(solveParams);
-        /*
         if (!m_passwordHash.equals(solveParams.passwordHash)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Wrong password.");
             return;
         }
-        */
 
         final SolveResponse res = new SolveResponse(UUID.randomUUID());
         final Operation op = new Operation();
@@ -118,12 +128,12 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             try {
                 Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
                 m_solver.solve(
-                    solveParams.input,
-                    solveParams.parallelMode,
-                    solveParams.minChars,
-                    regex,
-                    m_operations.get(res.id).progress,
-                    getServletContext());
+                        solveParams.input,
+                        solveParams.parallelMode,
+                        solveParams.minChars,
+                        regex,
+                        m_operations.get(res.id).progress,
+                        getServletContext());
             } catch (CancellationException ce) {
                 // Catch so status does not get set to Failed.
             } catch (Exception e) {

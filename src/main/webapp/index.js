@@ -75,7 +75,7 @@ function watchOperation() {
             document.getElementById('summary').innerText =
                 `${solveParams.input} (${solveParams.input.length} chars)
                 ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
-                Solutions greater than ${solveParams.minChars}
+                Finding >=${solveParams.minChars} chars
                 Matching ${solveParams.regex}
                 `;
             
