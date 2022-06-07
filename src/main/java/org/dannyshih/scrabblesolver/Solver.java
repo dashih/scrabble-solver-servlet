@@ -45,11 +45,13 @@ class Solver {
         progress.start(totalPermutations.get());
         ctx.log("generated combinations: " + combinations.size());
         if (parallel) {
+            ctx.log("parallelism: " + m_pool.getParallelism());
             final List<ForkJoinTask<Long>> tasks = new ArrayList<>();
             combinations.forEach(combination ->
                 tasks.add(m_pool.submit(new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress))));
 
             tasks.forEach(task -> progress.addNumProcessed(task.join()));
+            ctx.log("steal count: " + m_pool.getStealCount());
         } else {
             combinations.forEach(combination -> {
                 long numJustProcessed = permute(combination, 0, minCharacters, regex, progress, m_dictionary);
