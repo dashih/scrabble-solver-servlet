@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
@@ -17,13 +19,13 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.math.BigIntegerMath;
 
+import javax.servlet.ServletContext;
+
 public final class Solver {
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    // At what point do we also parallelize permuting. 9 characters including 2 blanks seems to be a good threshold.
-    private static final int PERMUTATION_PARALLEL_THRESH = 9;
-
     private final Set<String> m_dictionary;
+    private final ForkJoinPool m_pool;
 
     /**
      * ctor
@@ -31,34 +33,26 @@ public final class Solver {
     Solver() throws IOException {
         m_dictionary = new HashSet<>();
         populateDictionary();
+        m_pool = ForkJoinPool.commonPool();
     }
 
     /**
      * Solve
      */
-    void solve(String input, boolean parallel, int minCharacters, Pattern regex, Progress progress) {
+    void solve(String input, boolean parallel, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
-        List<StringBuilder> combinations = new ArrayList<>();
-        AtomicLong totalPerms = new AtomicLong(0L);
+        final List<StringBuilder> combinations = new ArrayList<>();
+        final AtomicLong totalPerms = new AtomicLong(0L);
         getCombinationswithBlanks(new StringBuilder(input), combinations, totalPerms);
         progress.start(totalPerms.get());
         if (parallel) {
-            combinations.parallelStream().forEach(combination -> {
-                if (combination.length() >= PERMUTATION_PARALLEL_THRESH) {
-                    List<StringBuilder> permStartPoints = new ArrayList<>();
-                    for (int i = 0; i < combination.length(); i++) {
-                        swap(combination, 0, i);
-                        permStartPoints.add(new StringBuilder(combination));
-                        swap(combination, 0, i);
-                    }
-
-                    permStartPoints.parallelStream().forEach(
-                            startPoint -> permute(startPoint, 1, minCharacters, regex, progress));
-                } else {
-                    permute(combination, 0, minCharacters, regex, progress);
-                }
+            final List<ForkJoinTask<Long>> tasks = new ArrayList<>();
+            combinations.forEach(combination -> {
+                tasks.add(m_pool.submit(new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress)));
             });
+
+            tasks.forEach(task -> progress.addNumProcessed(task.join()));
         } else {
             combinations.forEach(combination -> permute(combination, 0, minCharacters, regex, progress));
         }
@@ -117,7 +111,7 @@ public final class Solver {
                 progress.addSolution(str);
             }
 
-            progress.increment();
+            progress.addNumProcessed(1L);
             return;
         }
 

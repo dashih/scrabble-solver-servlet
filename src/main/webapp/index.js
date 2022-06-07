@@ -73,9 +73,9 @@ function watchOperation() {
             const solveParams = responseJson.params;
 
             document.getElementById('summary').innerText =
-                `${solveParams.input}
+                `${solveParams.input} (${solveParams.input.length} chars)
                 ${solveParams.parallelMode ? 'Parallel' : 'Sequential'} Mode
-                ${solveParams.minChars}-chars or greater
+                Solutions greater than ${solveParams.minChars}
                 Matching ${solveParams.regex}
                 `;
             

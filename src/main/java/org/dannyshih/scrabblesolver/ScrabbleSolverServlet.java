@@ -102,10 +102,12 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         SolveParams solveParams = m_gson.fromJson(requestBody, SolveParams.class);
         Preconditions.checkNotNull(solveParams);
+        /*
         if (!m_passwordHash.equals(solveParams.passwordHash)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Wrong password.");
             return;
         }
+        */
 
         final SolveResponse res = new SolveResponse(UUID.randomUUID());
         final Operation op = new Operation();
@@ -120,10 +122,12 @@ public final class ScrabbleSolverServlet extends HttpServlet {
                     solveParams.parallelMode,
                     solveParams.minChars,
                     regex,
-                    m_operations.get(res.id).progress);
+                    m_operations.get(res.id).progress,
+                    getServletContext());
             } catch (CancellationException ce) {
                 // Catch so status does not get set to Failed.
             } catch (Exception e) {
+                log(e.toString());
                 m_operations.get(res.id).progress.finish(e);
             }
         });
