@@ -24,7 +24,9 @@ Deploy in any container server (tested on Tomcat 8 and 9).
 Combinations, including blanks, are generated for the input string. These combinations are then permuted, and each permutation is checked against the dictionary to find solutions.
 
 ## Performance
-Permuting strings is the potential bottleneck of the algorithm. A brief test on modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9) yielded the following results for serial (single-core) permutation.
+A casual player is rarely solving inputs longer than 8 characters. Even including 2 blanks/wildcards, modern hardware has no problem producing the solution in seconds using a serial implementation of the algorithm described above.
+
+A brief test on modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9) yielded the following results for serial (single-core) permutation.
 
 | Length | Time (ms) |
 | ------ | --------- |
@@ -40,39 +42,35 @@ Permuting strings is the potential bottleneck of the algorithm. A brief test on 
 | 12     | 15,000    |
 | 13     | 200,000   |
 
-A casual player is rarely solving inputs longer than 8 characters. Even including 2 blanks/wildcards, modern hardware has no problem producing the solution in seconds using a serial implementation of the algorithm described above.
+Permutation does rapidly become more expensive after 11 characters. So larger inputs become interesting from a parallelization perspective.
 
-Permutation does rapidly become expensive after 11 characters. So academically, these larger inputs become interesting from a parallelization perspective.
+## Parallelization
+The first step of the algorithm, generating combinations, is still done serially. Processing the set of combinations is parallelized by submitting each to a worker pool.
 
-## Parallelization strategy
-Achieving good parallel performance is about breaking up the work just enough to fully utilize all processing cores all the time. How much the work is broken up is referred to as granularity. If the granularity is too coarse, some cores will be stuck with the more expensive operations, and other cores will become idle. If the granularity is too fine, the speedup from using multiple cores will be negated by parallelization overhead (managing task queues, synchronization, work stealing).
+### Larger strings
+Larger strings (11 characters or more) are broken down. Each character is selected to create a child string that starts with that character. These child strings are then permuted in parallel from the second character onwards. This process is recursed until the child strings are permuting 10 characters. As a result, the maximum processing time for a task or subtask is 200 ms.
 
-On ~2022 hardware (AWS EC2 8-core/16-core) and software (Java 11 Fork/Join Framework), I found that a granularity of around 200 ms per task strikes a good balance.
-
-### Batch processing of small strings
-Small strings, 8 characters or less, require ~10 ms to permute. And there are a great many of them in this scenario. So they are processed in batches where each batch requires around 200 ms to process.
-
-### Large strings
-Permuting large strings can quickly become very expensive. The standard method to parallelize permutation of a single string is to take each character and produce strings that start with those characters. These strings can then be permuted in parallel from the second character onwards. This process can be recursed until the desired permutation range is attained. This program breaks down strings until they are 11 characters, so each subtask (permutation of a 10-character string) requires about 200 ms.
+### Java Fork/Join Framework
+The worker pool is Java's amazing ForkJoinPool. Each task is a RecursiveAction that either permutes the string directly if it is small enough, or produces subtasks as per above. ForkJoinPool's innate work-stealing does a great job handling the unequal tasks and keeping cores busy.
 
 ### Historically
 Previous (v5 and lower) versions implemented suboptimal parallelization.
+
+Achieving good parallel performance is about breaking up the work just enough to fully utilize all processing cores all the time. How much the work is broken up is referred to as granularity. If the granularity is too coarse, some cores will be stuck with the more expensive operations, and other cores will become idle. If the granularity is too fine, the speedup from using multiple cores will be negated by parallelization overhead (managing task queues, synchronization, work stealing).
 
 #### Status reporting bottleneck
 Incrementing a shared AtomicLong for each permutation quickly becomes THE BOTTLENECK. Later v6 versions update the number of done permutations when each task completes.
 
 #### parallelStream() of combinations
-The first attempts at parallelization simply used parallelStream() to process the list of combinations. The combinations are, of course, of varying length. So particularly with very large inputs, some workers would be stuck with extremely expensive permutations for a long time after the rest of the problem had been solved. Additionally, individually processing the vast number of small combinations produced too much overhead.
+The first attempts at parallelization simply used parallelStream() to process the list of combinations. The combinations are, of course, of varying length. So particularly with very large inputs, some workers would be stuck with extremely expensive permutations for a long time after the rest of the problem had been solved.
 
 #### Producer/consumer
 Producing the complete set of subtasks (for the standard method of parallelizing permutation of a single string described above) is expensive for large inputs. So we want to begin processing tasks while the set is still being produced. Before learning about Java's Fork/Join Framework, this program used a producer/consumer model where the main thread populated a BlockingQueue, and worker threads consumed from the queue and did the actual permuting.
 
 This works reasonably well, but if the initial tasks are cheap, the consumers will block waiting for the producer. Also, if the level of parallelism is high, contention on the single work queue becomes an issue.
 
-#### Pure Java Fork/Join
-Java's Fork/Join framework is perfect for this problem. It allows the solution to be expressed elegantly in a divide-and-conqueror fashion, with individual worker queues and work-stealing taken care of automatically.
-
-Initial v6 versions only implemented the standard method of parallelizing permutation of a single string. Small strings were also processed as individual tasks, and the overhead became a bottleneck. Later v6 versions implemented batching for small strings.
+#### Batch processing small strings
+I attempted to optimize the current algorithm by batch processing small (6 characters or less) strings. The theory was that there is too much overhead in submitting each of these as a separate task to ForkJoinPool. It didn't help though. ForkJoinPool is too good.
 
 ### Benchmarks
 **Amazon EC2 c6a 2022 - 3rd generation AMD EPYC processors**
