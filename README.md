@@ -26,6 +26,7 @@ Combinations, including blanks, are generated for the input string. These combin
 ## Performance
 Permuting strings is the potential bottleneck of the operation. Modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9) permutation performance:
 | Length | Time (ms) |
+| ------ | --------- |
 | 3      | 6         |
 | 4      | 7         |
 | 5      | 8         |
