@@ -65,23 +65,22 @@ Java's Fork/Join framework is perfect for this problem. It allows the solution t
 
 However, initial v6 versions only used Fork/Join for parallelization of large strings. Small strings were also processed as individual tasks, and the coordination overhead became a bottleneck. Chunking was eventually implemented for small strings.
 
-### Benchmarks - Amazon EC2 c6a 2022 - 3rd generation AMD EPYC processors
+### Benchmarks
+**Amazon EC2 c6a 2022 - 3rd generation AMD EPYC processors**
+
 This program achieves 7x speedup on 8-core and 13x speedup on 16-core for an 11-character/2-blank input.
 
-Sequential
-
+#### Sequential
 ![Alt text](readme-img/11chars-2blanks_sequential.png?raw=true)
 
 
-8-core
-
+#### 8-core
 ![Alt text](readme-img/11chars-2blanks_8core.png?raw=true)
 
 
-16-core
-
+#### 16-core
 ![Alt text](readme-img/11chars-2blanks_16core.png?raw=true)
 
 
-The CPUs:
+#### The CPUs:
 ![Alt text](readme-img/cpus.png?raw=true)
