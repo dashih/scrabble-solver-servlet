@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v6.4'
+version 'v6.5'
 
 repositories {
     mavenCentral()

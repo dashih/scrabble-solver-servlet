@@ -6,23 +6,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RecursiveAction;
 import java.util.regex.Pattern;
 
 /**
- * This class is designed to permute large strings - 9 characters or more. These strings quickly become expensive.
+ * A RecursiveTask to permute a string.
  *
  * The standard method to parallelize permutation of a large string is to take each character and produce strings that
  * start with those characters. These strings can then be permuted in parallel from the second character onwards.
  * This process can be recursed until the desired permutation range is attained.
  *
- * On modern hardware (2022), an 11 character strings requires 1500 ms to permute, and a 10 character string requires
- * 200 ms. This class uses the above strategy to break larger strings down to units that require no more than 200 ms
- * to process.
+ * On modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9), an 11 character string requires 1500 ms to permute,
+ * and a 10 character string requires 200 ms. Subtasks that require a maximum of 200 ms to process strike a good
+ * balance between optimizing core utilization through work-stealing and minimizing coordination overhead.
  *
  * @author dshih
  */
-final class Permuter extends RecursiveTask<Long> {
+final class Permuter extends RecursiveAction {
     private static final int THRESHOLD = 11;
 
     private final StringBuilder m_sb;
@@ -42,9 +42,9 @@ final class Permuter extends RecursiveTask<Long> {
     }
 
     @Override
-    protected Long compute() {
+    protected void compute() {
         if (m_sb.length() <= THRESHOLD) {
-            return Solver.permute(m_sb, m_idx, m_progress, permutation -> {
+            final long numProcessed = Solver.permute(m_sb, m_idx, m_progress, permutation -> {
                 if (m_dictionary.contains(permutation) &&
                     permutation.length() >= m_minCharacters &&
                     m_regex.matcher(permutation).matches()) {
@@ -52,8 +52,14 @@ final class Permuter extends RecursiveTask<Long> {
                     m_progress.addSolution(permutation);
                 }
             });
+
+            // We can get away with updating progress on task completion instead of every permutation, because the
+            // biggest tasks only require 200 ms to complete (so that's the maximum amount of time between status
+            // updates). The serial solver must update on every permutation, because otherwise, it might get stuck
+            // processing a large string and not provide a status update for hours.
+            m_progress.addNumProcessed(numProcessed);
         } else {
-            return ForkJoinTask.invokeAll(createSubtasks()).stream().mapToLong(ForkJoinTask::join).sum();
+            ForkJoinTask.invokeAll(createSubtasks());
         }
     }
 

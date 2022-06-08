@@ -25,6 +25,7 @@ public final class SequentialSolver extends Solver {
                         progress.addSolution(permutation);
                     }
 
+                    // Increment for every permutation to provide timely progress updates.
                     progress.addNumProcessed(1L);
                 }));
     }
