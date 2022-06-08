@@ -29,7 +29,14 @@ public final class Permuter extends RecursiveTask<Long> {
     @Override
     protected Long compute() {
         if (m_sb.length() <= THRESHOLD) {
-            return Solver.permute(m_sb, m_idx, m_minCharacters, m_regex, m_progress, m_dictionary);
+            return Solver.permute(m_sb, m_idx, m_progress, permutation -> {
+                if (m_dictionary.contains(permutation) &&
+                    permutation.length() >= m_minCharacters &&
+                    m_regex.matcher(permutation).matches()) {
+
+                    m_progress.addSolution(permutation);
+                }
+            });
         } else {
             return ForkJoinTask.invokeAll(createSubtasks()).stream().mapToLong(ForkJoinTask::join).sum();
         }

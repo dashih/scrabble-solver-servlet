@@ -67,24 +67,22 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         }
 
         ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor();
-        reaper.scheduleAtFixedRate(() -> {
-            m_operations.keySet().forEach(id -> {
-                final Operation op = m_operations.get(id);
-                switch (op.progress.getRunStatus()) {
-                    case Canceled:
-                    case Failed:
+        reaper.scheduleAtFixedRate(() -> m_operations.keySet().forEach(id -> {
+            final Operation op = m_operations.get(id);
+            switch (op.progress.getRunStatus()) {
+                case Canceled:
+                case Failed:
+                    m_operations.remove(id);
+                    break;
+                case Done:
+                    final long ageMs = new Date().getTime() - op.progress.getFinishedDate().getTime();
+                    final long ageDays = TimeUnit.DAYS.convert(ageMs, TimeUnit.MILLISECONDS);
+                    if (ageDays > DONE_KEEP_DAYS) {
                         m_operations.remove(id);
-                        break;
-                    case Done:
-                        final long ageMs = new Date().getTime() - op.progress.getFinishedDate().getTime();
-                        final long ageDays = TimeUnit.DAYS.convert(ageMs, TimeUnit.MILLISECONDS);
-                        if (ageDays > DONE_KEEP_DAYS) {
-                            m_operations.remove(id);
-                        }
-                        break;
-                }
-            });
-        }, REAP_PERIOD, REAP_PERIOD, TimeUnit.MINUTES);
+                    }
+                    break;
+            }
+        }), REAP_PERIOD, REAP_PERIOD, TimeUnit.MINUTES);
     }
 
     @Override
@@ -189,7 +187,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         VersionsResponse v = new VersionsResponse();
 
         InputStream versionResource = Preconditions.checkNotNull(getClass().getResourceAsStream(VERSION_RESOURCE));
-        String appVersion = null;
+        String appVersion;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(versionResource))) {
             appVersion = reader.readLine();
         } catch (IOException e) {
