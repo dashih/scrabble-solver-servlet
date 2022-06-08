@@ -58,18 +58,21 @@ Permuting large strings can quickly become very expensive. The standard method t
 ### Historically
 Previous (v5 and lower) versions implemented suboptimal parallelization.
 
+#### Status reporting bottleneck
+Incrementing a shared AtomicLong for each permutation quickly becomes THE BOTTLENECK. Later v6 versions update the number of done permutations when each task completes.
+
 #### parallelStream() of combinations
 The first attempts at parallelization simply used parallelStream() to process the list of combinations. The combinations are, of course, of varying length. So particularly with very large inputs, some workers would be stuck with extremely expensive permutations for a long time after the rest of the problem had been solved. Additionally, individually processing the vast number of small combinations produced too much overhead.
 
 #### Producer/consumer
 Producing the complete set of subtasks (for the standard method of parallelizing permutation of a single string described above) is expensive for large inputs. So we want to begin processing tasks while the set is still being produced. Before learning about Java's Fork/Join Framework, this program used a producer/consumer model where the main thread populated a BlockingQueue, and worker threads consumed from the queue and did the actual permuting.
 
-This works reasonably well, but if the initial tasks are cheap, the consumers will block waiting for the producer. Also, the single work queue can become a bottleneck.
+This works reasonably well, but if the initial tasks are cheap, the consumers will block waiting for the producer. Also, if the level of parallelism is high, contention on the single work queue becomes an issue.
 
 #### Pure Java Fork/Join
 Java's Fork/Join framework is perfect for this problem. It allows the solution to be expressed elegantly in a divide-and-conqueror fashion, with individual worker queues and work-stealing taken care of automatically.
 
-Initial v6 versions only implemented the standard method of parallelizing permutation of a single string. Small strings were also processed as individual tasks, and the overhead became a bottleneck. Batching was eventually implemented for small strings.
+Initial v6 versions only implemented the standard method of parallelizing permutation of a single string. Small strings were also processed as individual tasks, and the overhead became a bottleneck. Later v6 versions implemented batching for small strings.
 
 ### Benchmarks
 **Amazon EC2 c6a 2022 - 3rd generation AMD EPYC processors**
