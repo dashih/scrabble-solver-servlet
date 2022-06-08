@@ -4,6 +4,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.dannyshih.scrabblesolver.solvers.ParallelSolver;
+import org.dannyshih.scrabblesolver.solvers.SequentialSolver;
+import org.dannyshih.scrabblesolver.solvers.Solver;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -47,14 +50,16 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final long REAP_PERIOD = 1; // minute
     private static final long DONE_KEEP_DAYS = 7; // days
 
-    private final Solver m_solver;
+    private final Solver m_sequentialSolver;
+    private final Solver m_parallelSolver;
     private final ExecutorService m_executor;
     private final Gson m_gson;
     private final ConcurrentMap<UUID, Operation> m_operations;
     private final String m_passwordHash;
 
     public ScrabbleSolverServlet() throws IOException {
-        m_solver = new Solver();
+        m_sequentialSolver = new SequentialSolver();
+        m_parallelSolver = new ParallelSolver();
         m_executor = Executors.newFixedThreadPool(NUM_THREADS);
         m_gson = new Gson();
         m_operations = new ConcurrentHashMap<>();
@@ -124,14 +129,14 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         m_operations.put(res.id, op);
         m_executor.submit(() -> {
             try {
-                Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
-                m_solver.solve(
+                final Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
+                (solveParams.parallelMode ? m_parallelSolver : m_sequentialSolver).solve(
                         solveParams.input,
-                        solveParams.parallelMode,
                         solveParams.minChars,
                         regex,
                         m_operations.get(res.id).progress,
                         getServletContext());
+
             } catch (CancellationException ce) {
                 // Catch so status does not get set to Failed.
             } catch (Exception e) {

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-final class Progress {
+public final class Progress {
     private final ConcurrentMap<String, Boolean> m_solutions;
     private final Stopwatch m_stopwatch;
 
@@ -20,7 +20,7 @@ final class Progress {
     private RunStatus m_runStatus;
     private Date m_finished;
 
-    Progress() {
+    public Progress() {
         m_solutions = new ConcurrentHashMap<>();
         m_total = 0L;
         m_numProcessed = 0L;
@@ -28,50 +28,50 @@ final class Progress {
         m_runStatus = RunStatus.Starting;
     }
 
-    void start(long goal) {
+    public void start(long goal) {
         m_total = goal;
         m_stopwatch.start();
         m_runStatus = RunStatus.Running;
     }
 
-    RunStatus getRunStatus() {
+    public RunStatus getRunStatus() {
         return m_runStatus;
     }
 
-    Exception getError() {
+    public Exception getError() {
         return m_exception;
     }
 
-    Date getFinishedDate() {
+    public Date getFinishedDate() {
         return m_finished;
     }
 
-    void addNumProcessed(long numProcessed) {
+    public void addNumProcessed(long numProcessed) {
         m_numProcessed += numProcessed;
     }
 
-    void addSolution(String solution) {
+    public void addSolution(String solution) {
         m_solutions.putIfAbsent(solution, true);
     }
 
-    void cancel() {
+    public void cancel() {
         m_runStatus = RunStatus.Canceled;
         m_finished = new Date();
     }
 
-    void finish(Exception exception) {
+    public void finish(Exception exception) {
         m_runStatus = RunStatus.Failed;
         m_exception = exception;
         m_finished = new Date();
     }
 
-    void finish() {
+    public void finish() {
         m_stopwatch.stop();
         m_runStatus = RunStatus.Done;
         m_finished = new Date();
     }
 
-    SerializableProgress toSerializable() {
+    public SerializableProgress toSerializable() {
         SerializableProgress sp = new SerializableProgress();
         sp.runStatus = m_runStatus;
         if (m_runStatus == RunStatus.Starting) {
@@ -88,7 +88,7 @@ final class Progress {
         return sp;
     }
 
-    enum RunStatus {
+    public enum RunStatus {
         Starting,
         Running,
         Canceled,

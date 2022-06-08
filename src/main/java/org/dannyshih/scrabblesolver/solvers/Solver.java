@@ -1,4 +1,4 @@
-package org.dannyshih.scrabblesolver;
+package org.dannyshih.scrabblesolver.solvers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,8 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -19,22 +17,24 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.math.BigIntegerMath;
+import org.dannyshih.scrabblesolver.Progress;
 
 import javax.servlet.ServletContext;
 
-class Solver {
+public abstract class Solver {
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    private final Set<String> m_dictionary;
-    private final ForkJoinPool m_pool;
+    protected final Set<String> m_dictionary;
 
-    Solver() throws IOException {
+    public Solver() throws IOException {
         m_dictionary = new HashSet<>();
         populateDictionary();
-        m_pool = ForkJoinPool.commonPool();
     }
 
-    void solve(String input, boolean parallel, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
+    protected abstract void doSolve(
+            List<StringBuilder> combinations, int minCharacters, Pattern regex, Progress progress, ServletContext ctx);
+
+    public void solve(String input, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
         final List<StringBuilder> combinations = new ArrayList<>();
@@ -46,54 +46,7 @@ class Solver {
 
         progress.start(totalPermutations.get());
         ctx.log("Solver:: generated combinations: " + combinations.size());
-        if (parallel) {
-            ctx.log("Solver:: parallelism: " + m_pool.getParallelism());
-
-            final List<StringBuilder> smalls = new ArrayList<>();
-            final List<StringBuilder> larges = new ArrayList<>();
-            combinations.forEach(combination -> {
-                if (combination.length() <= 6) {
-                    smalls.add(combination);
-                } else {
-                    larges.add(combination);
-                }
-            });
-
-            final List<ForkJoinTask<Long>> tasks = new ArrayList<>();
-            larges.forEach(combination ->
-                tasks.add(m_pool.submit(new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress))));
-            ctx.log("Solver :: submitted " + tasks.size() + " tasks to ForkJoin framework for large combinations");
-
-            int numSmallPermsProcessed = 0;
-            for (final StringBuilder combination : smalls) {
-                numSmallPermsProcessed += permute(combination, 0, progress, permutation -> {
-                    if (m_dictionary.contains(permutation) &&
-                        permutation.length() >= minCharacters &&
-                        regex.matcher(permutation).matches()) {
-
-                        progress.addSolution(permutation);
-                    }
-                });
-            }
-
-            ctx.log("Solver :: processed " + smalls.size() + " small combinations");
-            progress.addNumProcessed(numSmallPermsProcessed);
-
-            tasks.forEach(task -> progress.addNumProcessed(task.join()));
-            ctx.log("Solver:: steal count: " + m_pool.getStealCount());
-        } else {
-            combinations.forEach(combination ->
-                    permute(combination, 0, progress, permutation -> {
-                        if (m_dictionary.contains(permutation) &&
-                                permutation.length() >= minCharacters &&
-                                regex.matcher(permutation).matches()) {
-
-                            progress.addSolution(permutation);
-                        }
-
-                        progress.addNumProcessed(1L);
-                    }));
-        }
+        doSolve(combinations, minCharacters, regex, progress, ctx);
 
         progress.finish();
     }

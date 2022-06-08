@@ -1,4 +1,6 @@
-package org.dannyshih.scrabblesolver;
+package org.dannyshih.scrabblesolver.solvers;
+
+import org.dannyshih.scrabblesolver.Progress;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +9,20 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Pattern;
 
-public final class Permuter extends RecursiveTask<Long> {
+/**
+ * This class is designed to permute large strings - 9 characters or more. These strings quickly become expensive.
+ *
+ * The standard method to parallelize permutation of a large string is to take each character and produce strings that
+ * start with those characters. These strings can then be permuted in parallel from the second character onwards.
+ * This process can be recursed until the desired permutation range is attained.
+ *
+ * On modern hardware (2022), an 11 character strings requires 1500 ms to permute, and a 10 character string requires
+ * 200 ms. This class uses the above strategy to break larger strings down to units that require no more than 200 ms
+ * to process.
+ *
+ * @author dshih
+ */
+final class Permuter extends RecursiveTask<Long> {
     private static final int THRESHOLD = 11;
 
     private final StringBuilder m_sb;
