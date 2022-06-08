@@ -72,22 +72,28 @@ This works reasonably well, but if the initial tasks are cheap, the consumers wi
 #### Batch processing small strings
 I attempted to optimize the current algorithm by batch processing small (6 characters or less) strings. The theory was that there is too much overhead in submitting each of these as a separate task to ForkJoinPool. It didn't help though. ForkJoinPool is too good.
 
-### Benchmarks
+## Benchmarks
 **Amazon EC2 c6a 2022 - 3rd generation AMD EPYC processors**
 
-This program achieves 7x speedup on 8-core and 13x speedup on 16-core for an 11-character/2-blank input.
+### 11 characters with 2 blanks
+
+| Cores    | Time (s) | Speedup | Efficiency |
+| -------- | -------- | ------- | ---------- |
+| Serial   | 493      |         |            |
+| 8-core   | 71       | 6.9x    | 86.8%      |
+| 16-core  | 37       | 13.3x   | 83.3%      |
+| 32-core  | 18       | 27.4x   | 85.6%      | 
+| 48-core  | 12       | 41.1x   | 85.6%      | 
+| 64-core  | 10       | 49.3x   | 77.0%      |
+| 96-core  | 8        | 61.6x   | 64.2%      | 
 
 #### Sequential
 ![Alt text](readme-img/11chars-2blanks_sequential.png?raw=true)
 
 
-#### 8-core
-![Alt text](readme-img/11chars-2blanks_8core.png?raw=true)
+#### Parallel
+![Alt text](readme-img/11chars-2blanks_96-core.png?raw=true)
 
 
-#### 16-core
-![Alt text](readme-img/11chars-2blanks_16core.png?raw=true)
-
-
-#### The CPUs:
-![Alt text](readme-img/cpus.png?raw=true)
+### The CPUs:
+![Alt text](readme-img/the-cpus.png?raw=true)
