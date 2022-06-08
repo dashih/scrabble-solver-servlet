@@ -71,11 +71,14 @@ This program achieves 7x speedup on 8-core and 13x speedup on 16-core for an 11-
 Sequential
 ![Alt text](readme-img/11chars-2blanks_sequential.png?raw=true)
 
+
 8-core
 ![Alt text](readme-img/11chars-2blanks_8core.png?raw=true)
 
-16-cor3
+
+16-core
 ![Alt text](readme-img/11chars-2blanks_16core.png?raw=true)
+
 
 The CPUs:
 ![Alt text](readme-img/cpus.png?raw=true)
