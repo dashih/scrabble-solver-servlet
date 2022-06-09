@@ -5,7 +5,6 @@ import org.dannyshih.scrabblesolver.Progress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,18 +13,18 @@ import java.util.regex.Pattern;
 /**
  * A RecursiveTask to permute a string.
  *
- * The standard method to parallelize permutation of a large string is to take each character and produce strings that
- * start with those characters. These strings can then be permuted in parallel from the second character onwards.
- * This process can be recursed until the desired permutation range is attained.
+ * If the permutation range is less than or equal to the threshold, permute it directly.
  *
- * On modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9), an 11 character string requires 1500 ms to permute,
- * and a 10 character string requires 200 ms. Subtasks that require a maximum of 200 ms to process strike a good
- * balance between optimizing core utilization through work-stealing and minimizing coordination overhead.
+ * Otherwise, divide and conqueror. Take each character in the permutation range and create a child string that starts
+ * with that character. These child strings can be permuted from the next character onwards to produce the same results
+ * as permuting the parent string. The child string permutations can be done in parallel, and the permutation range
+ * is reduced by one.
  *
  * @author dshih
  */
 final class Permuter extends RecursiveAction {
-    private static final int THRESHOLD = 11;
+    // Experimentally tuned. See README.
+    private static final int THRESHOLD = 6;
 
     private final StringBuilder m_sb;
     private final int m_idx;
@@ -53,11 +52,7 @@ final class Permuter extends RecursiveAction {
 
     @Override
     protected void compute() {
-        if (m_isCanceled.get()) {
-            throw new CancellationException();
-        }
-
-        if (m_sb.length() <= THRESHOLD) {
+        if (m_sb.length() - m_idx <= THRESHOLD) {
             final long numProcessed = Solver.permute(m_sb, m_idx, m_isCanceled, permutation -> {
                 if (m_dictionary.contains(permutation) &&
                     permutation.length() >= m_minCharacters &&

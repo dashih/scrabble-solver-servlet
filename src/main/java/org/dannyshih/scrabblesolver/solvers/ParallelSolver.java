@@ -5,7 +5,6 @@ import org.dannyshih.scrabblesolver.Progress;
 import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
