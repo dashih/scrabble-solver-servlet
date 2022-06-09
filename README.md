@@ -93,5 +93,11 @@ I attempted to optimize the current algorithm by batch processing small (6 chara
 ![Alt text](readme-img/11chars-2blanks_96-core.png?raw=true)
 
 
-### The CPUs:
-![Alt text](readme-img/the-cpus.png?raw=true)
+### Longest scrabble word - 15 characters
+The initial parallel algorithm required 2 days to find this solution with 96 cores.
+
+#### Solution
+![Alt text](readme-img/longest-scrabble-word.png?raw=true)
+
+#### Da CPUs
+![Alt text](readme-img/CPU.png?raw=true)
