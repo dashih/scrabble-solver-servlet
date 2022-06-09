@@ -19,11 +19,11 @@ public final class SequentialSolver extends Solver {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCanceled,
+            AtomicBoolean isCancellationRequested,
             ServletContext ctx) {
         ctx.log("SequentialSolver :: solving...");
         combinations.forEach(combination ->
-                permute(combination, 0, isCanceled, permutation -> {
+                permute(combination, 0, isCancellationRequested, permutation -> {
                     if (m_dictionary.contains(permutation) &&
                             permutation.length() >= minCharacters &&
                             regex.matcher(permutation).matches()) {

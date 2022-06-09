@@ -104,7 +104,10 @@ function watchOperation() {
                 `;
             statusPending = false;
         } else {
-            if (response.status === 410) {
+            if (response.status === 503) {
+                document.getElementById('cancelButton').style.display = 'none';
+                document.getElementById('summary').innerText = 'Cancellation pending...';
+            } else if (response.status === 410) {
                 clearInterval(statusTask);
                 operation = undefined;
                 statusPending = false;

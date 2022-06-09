@@ -37,7 +37,7 @@ public abstract class Solver {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCanceled,
+            AtomicBoolean isCancellationRequested,
             ServletContext ctx);
 
     public void solve(
@@ -45,7 +45,7 @@ public abstract class Solver {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCanceled,
+            AtomicBoolean isCancellationRequested,
             ServletContext ctx) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
@@ -60,7 +60,7 @@ public abstract class Solver {
         ctx.log("Solver :: generated combinations: " + combinations.size());
 
         try {
-            doSolve(combinations, minCharacters, regex, progress, isCanceled, ctx);
+            doSolve(combinations, minCharacters, regex, progress, isCancellationRequested, ctx);
             progress.finish();
         } catch (CancellationException ce) {
             ctx.log("Solver :: canceled!");
@@ -104,8 +104,9 @@ public abstract class Solver {
         }
     }
 
-    static long permute(StringBuilder sb, int idx, AtomicBoolean isCanceled, Consumer<String> permutationConsumer) {
-        if (isCanceled.get()) {
+    static long permute(
+            StringBuilder sb, int idx, AtomicBoolean isCancellationRequested, Consumer<String> permutationConsumer) {
+        if (isCancellationRequested.get()) {
             throw new CancellationException();
         }
 
@@ -118,7 +119,7 @@ public abstract class Solver {
         long numProcessed = 0L;
         for (int i = idx; i < sb.length(); i++) {
             swap(sb, idx, i);
-            numProcessed += permute(sb, idx + 1, isCanceled, permutationConsumer);
+            numProcessed += permute(sb, idx + 1, isCancellationRequested, permutationConsumer);
             swap(sb, idx, i);
         }
 

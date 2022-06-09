@@ -125,7 +125,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         final Operation op = new Operation();
         op.params = solveParams;
         op.progress = new Progress();
-        op.isCanceled = new AtomicBoolean();
+        op.isCancellationRequested = new AtomicBoolean();
         m_operations.put(res.id, op);
         m_executor.submit(() -> {
             try {
@@ -135,7 +135,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
                         solveParams.minChars,
                         regex,
                         op.progress,
-                        op.isCanceled,
+                        op.isCancellationRequested,
                         getServletContext());
 
             } catch (Exception e) {
@@ -157,6 +157,11 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             Progress progress = op.progress;
             if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
                 response.sendError(HttpServletResponse.SC_GONE, "Operation canceled");
+                return;
+            }
+
+            if (op.isCancellationRequested.get()) {
+                response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Cancellation pending");
                 return;
             }
 
@@ -183,7 +188,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         if (op == null) {
             log("didn't find operation to cancel");
         } else {
-            op.isCanceled.set(true);
+            op.isCancellationRequested.set(true);
         }
     }
 
@@ -227,7 +232,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final class Operation {
         SolveParams params;
         Progress progress;
-        AtomicBoolean isCanceled;
+        AtomicBoolean isCancellationRequested;
     }
 
     private static final class SolveParams {

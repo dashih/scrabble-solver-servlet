@@ -5,6 +5,7 @@ import org.dannyshih.scrabblesolver.Progress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,7 +33,7 @@ final class Permuter extends RecursiveAction {
     private final int m_minCharacters;
     private final Pattern m_regex;
     private final Progress m_progress;
-    private final AtomicBoolean m_isCanceled;
+    private final AtomicBoolean m_isCancellationRequested;
 
     Permuter(
             StringBuilder sb,
@@ -40,20 +41,20 @@ final class Permuter extends RecursiveAction {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCanceled) {
+            AtomicBoolean isCancellationRequested) {
         m_sb = sb;
         m_idx = idx;
         m_dictionary = dictionary;
         m_minCharacters = minCharacters;
         m_regex = regex;
         m_progress = progress;
-        m_isCanceled = isCanceled;
+        m_isCancellationRequested = isCancellationRequested;
     }
 
     @Override
     protected void compute() {
         if (m_sb.length() - m_idx <= THRESHOLD) {
-            final long numProcessed = Solver.permute(m_sb, m_idx, m_isCanceled, permutation -> {
+            final long numProcessed = Solver.permute(m_sb, m_idx, m_isCancellationRequested, permutation -> {
                 if (m_dictionary.contains(permutation) &&
                     permutation.length() >= m_minCharacters &&
                     m_regex.matcher(permutation).matches()) {
@@ -83,7 +84,7 @@ final class Permuter extends RecursiveAction {
                     m_minCharacters,
                     m_regex,
                     m_progress,
-                    m_isCanceled));
+                    m_isCancellationRequested));
             Solver.swap(m_sb, m_idx, i);
         }
 
