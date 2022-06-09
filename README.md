@@ -78,12 +78,12 @@ I attempted to optimize the current algorithm by batch processing small (6 chara
 | Cores    | Time (s) | Speedup | Efficiency |
 | -------- | -------- | ------- | ---------- |
 | Serial   | 493      |         |            |
-| 8-core   | 71       | 6.9x    | 86.8%      |
-| 16-core  | 37       | 13.3x   | 83.3%      |
-| 32-core  | 18       | 27.4x   | 85.6%      | 
-| 48-core  | 12       | 41.1x   | 85.6%      | 
-| 64-core  | 10       | 49.3x   | 77.0%      |
-| 96-core  | 8        | 61.6x   | 64.2%      | 
+| 8-core   | 68       | 7.3x    | 90.6%      |
+| 16-core  | 32       | 15.4x   | 96.3%      |
+| 32-core  | 16       | 30.8x   | 96.3%      | 
+| 48-core  | 11       | 44.8x   | 93.3%      | 
+| 64-core  | 8        | 61.6x   | 96.3%      |
+| 96-core  | 6        | 82.2x   | 85.6%      | 
 
 #### Sequential
 ![Alt text](readme-img/11chars-2blanks_sequential.png?raw=true)
