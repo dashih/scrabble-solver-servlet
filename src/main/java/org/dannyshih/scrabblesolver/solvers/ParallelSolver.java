@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -26,14 +27,19 @@ public final class ParallelSolver extends Solver {
 
     @Override
     protected void doSolve(
-            List<StringBuilder> combinations, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
+            List<StringBuilder> combinations,
+            int minCharacters,
+            Pattern regex,
+            Progress progress,
+            AtomicBoolean isCanceled,
+            ServletContext ctx) {
         ctx.log("ParallelSolver :: parallelism - " + m_pool.getParallelism());
         final List<ForkJoinTask<Void>> tasks = new ArrayList<>();
         combinations.forEach(combination ->
-                tasks.add(m_pool.submit(new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress))));
+                tasks.add(m_pool.submit(
+                        new Permuter(combination, 0, m_dictionary, minCharacters, regex, progress, isCanceled))));
 
         // Shuffle the tasks so there's a better chance of responsive status reporting.
-        Collections.shuffle(tasks);
         tasks.forEach(ForkJoinTask::join);
         ctx.log("ParallelSolver:: steal count: " + m_pool.getStealCount());
     }

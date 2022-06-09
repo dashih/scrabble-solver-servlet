@@ -3,7 +3,6 @@ package org.dannyshih.scrabblesolver;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
-import org.apache.commons.lang3.StringUtils;
 import org.dannyshih.scrabblesolver.solvers.ParallelSolver;
 import org.dannyshih.scrabblesolver.solvers.SequentialSolver;
 import org.dannyshih.scrabblesolver.solvers.Solver;
@@ -30,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -126,19 +126,19 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         final Operation op = new Operation();
         op.params = solveParams;
         op.progress = new Progress();
+        op.isCanceled = new AtomicBoolean();
         m_operations.put(res.id, op);
         m_executor.submit(() -> {
             try {
-                final Pattern regex = Pattern.compile(StringUtils.isBlank(solveParams.regex) ? "[A-Z]+" : solveParams.regex);
+                final Pattern regex = Pattern.compile(solveParams.regex);
                 (solveParams.parallelMode ? m_parallelSolver : m_sequentialSolver).solve(
                         solveParams.input,
                         solveParams.minChars,
                         regex,
-                        m_operations.get(res.id).progress,
+                        op.progress,
+                        op.isCanceled,
                         getServletContext());
 
-            } catch (CancellationException ce) {
-                // Catch so status does not get set to Failed.
             } catch (Exception e) {
                 log(e.toString());
                 m_operations.get(res.id).progress.finish(e);
@@ -184,7 +184,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         if (op == null) {
             log("didn't find operation to cancel");
         } else {
-            op.progress.cancel();
+            op.isCanceled.set(true);
         }
     }
 
@@ -227,6 +227,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final class Operation {
         SolveParams params;
         Progress progress;
+        AtomicBoolean isCanceled;
     }
 
     private static final class SolveParams {

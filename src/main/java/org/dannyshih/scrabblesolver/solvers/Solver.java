@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -32,9 +33,20 @@ public abstract class Solver {
     }
 
     protected abstract void doSolve(
-            List<StringBuilder> combinations, int minCharacters, Pattern regex, Progress progress, ServletContext ctx);
+            List<StringBuilder> combinations,
+            int minCharacters,
+            Pattern regex,
+            Progress progress,
+            AtomicBoolean isCanceled,
+            ServletContext ctx);
 
-    public void solve(String input, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
+    public void solve(
+            String input,
+            int minCharacters,
+            Pattern regex,
+            Progress progress,
+            AtomicBoolean isCanceled,
+            ServletContext ctx) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
         final List<StringBuilder> combinations = new ArrayList<>();
@@ -45,10 +57,15 @@ public abstract class Solver {
         });
 
         progress.start(totalPermutations.get());
-        ctx.log("Solver:: generated combinations: " + combinations.size());
-        doSolve(combinations, minCharacters, regex, progress, ctx);
+        ctx.log("Solver :: generated combinations: " + combinations.size());
 
-        progress.finish();
+        try {
+            doSolve(combinations, minCharacters, regex, progress, isCanceled, ctx);
+            progress.finish();
+        } catch (CancellationException ce) {
+            ctx.log("Solver :: canceled!");
+            progress.cancel();
+        }
     }
 
     private void populateDictionary() throws IOException {
@@ -87,8 +104,8 @@ public abstract class Solver {
         }
     }
 
-    static long permute(StringBuilder sb, int idx, Progress progress, Consumer<String> permutationConsumer) {
-        if (progress.getRunStatus() == Progress.RunStatus.Canceled) {
+    static long permute(StringBuilder sb, int idx, AtomicBoolean isCanceled, Consumer<String> permutationConsumer) {
+        if (isCanceled.get()) {
             throw new CancellationException();
         }
 
@@ -101,7 +118,7 @@ public abstract class Solver {
         long numProcessed = 0L;
         for (int i = idx; i < sb.length(); i++) {
             swap(sb, idx, i);
-            numProcessed += permute(sb, idx + 1, progress, permutationConsumer);
+            numProcessed += permute(sb, idx + 1, isCanceled, permutationConsumer);
             swap(sb, idx, i);
         }
 

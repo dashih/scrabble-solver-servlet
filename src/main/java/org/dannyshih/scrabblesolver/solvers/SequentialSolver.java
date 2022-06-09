@@ -5,6 +5,7 @@ import org.dannyshih.scrabblesolver.Progress;
 import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 public final class SequentialSolver extends Solver {
@@ -14,10 +15,15 @@ public final class SequentialSolver extends Solver {
 
     @Override
     protected void doSolve(
-            List<StringBuilder> combinations, int minCharacters, Pattern regex, Progress progress, ServletContext ctx) {
+            List<StringBuilder> combinations,
+            int minCharacters,
+            Pattern regex,
+            Progress progress,
+            AtomicBoolean isCanceled,
+            ServletContext ctx) {
         ctx.log("SequentialSolver :: solving...");
         combinations.forEach(combination ->
-                permute(combination, 0, progress, permutation -> {
+                permute(combination, 0, isCanceled, permutation -> {
                     if (m_dictionary.contains(permutation) &&
                             permutation.length() >= minCharacters &&
                             regex.matcher(permutation).matches()) {
