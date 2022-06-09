@@ -205,6 +205,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             request.getServletContext().getEffectiveMajorVersion(),
             request.getServletContext().getEffectiveMinorVersion());
         v.java = System.getProperty("java.version");
+        v.numCores = Runtime.getRuntime().availableProcessors();
 
         respond(response, v);
     }
@@ -256,6 +257,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String tomcat;
         String servletApi;
         String java;
+        int numCores;
     }
 
     private static final class CurrentlyRunningResponse {

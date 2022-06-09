@@ -24,7 +24,8 @@ window.onload = async () => {
             `${v.app}
             ${v.tomcat}
             Java Servlet API ${v.servletApi}
-            Java ${v.java}`;
+            Java ${v.java}
+            ${v.numCores} cores`;
     } else {
         alert('Error getting app info: ' + response.status);
     }
