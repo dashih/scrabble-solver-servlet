@@ -26,32 +26,30 @@ Combinations, including blanks, are generated for the input string. These combin
 ## Performance
 A casual player is rarely solving inputs longer than 8 characters. Even including 2 blanks/wildcards, modern hardware has no problem producing the solution in seconds using a serial implementation of the algorithm described above.
 
-A brief test on modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9) yielded the following results for serial (single-core) permutation.
-
-| Length | Time (ms) |
-| ------ | --------- |
-| 3      | 6         |
-| 4      | 7         |
-| 5      | 8         |
-| 6      | 8         |
-| 7      | 10        |
-| 8      | 15        |
-| 9      | 60        |
-| 10     | 200       |
-| 11     | 1,600     |
-| 12     | 15,000    |
-| 13     | 200,000   |
-
 Permutation does rapidly become more expensive after 11 characters. So larger inputs become interesting from a parallelization perspective.
 
 ## Parallelization
 The first step of the algorithm, generating combinations, is still done serially. Processing the set of combinations is parallelized by submitting each to a worker pool.
 
-### Larger strings
-Larger strings (11 characters or more) are broken down. Each character is selected to create a child string that starts with that character. These child strings are then permuted in parallel from the second character onwards. This process is recursed until the child strings are permuting 10 characters. As a result, the maximum processing time for a task or subtask is 200 ms.
+### Parallel permutation
+If they are large enough, individual string permutation is parallelized using the following method. Take each character in the permutation range and create a child string that starts with that character. These child strings can be permuted from the next character onwards to produce the same results as permuting the parent string. The child string permutations can be done in parallel, and the permutation range is reduced by one. This process is recursed in a divide-and-conquer manner until the permutation range is small enough to process directly.
+
+How small is small enough? This threshold is chosen based on experimental tuning. A brief test on modern hardware (2019 Macbook Pro, 2.4 GHz Intel Core i9) yielded the following results for serial (single-core) permutation.
+
+| Length | Time (ms) |
+| ------ | --------- |
+| 5      | 0.008     |
+| 6      | 0.03      |
+| 7      | 0.2       |
+| 8      | 1.1       |
+| 9      | 10        |
+| 10     | 120       |
+| 11     | 1,320     |
+
+Running the full servlet on EC2 C6a instances, a threshold of 6 was found to optimal.
 
 ### Java Fork/Join Framework
-The worker pool is Java's amazing ForkJoinPool. Each task is a RecursiveAction that either permutes the string directly if it is small enough, or produces subtasks as per above. ForkJoinPool's innate work-stealing does a great job handling the unequal tasks and keeping cores busy.
+The worker pool is Java's amazing ForkJoinPool. Each task is a RecursiveAction that either permutes the string directly if it is small enough, or produces subtasks as per above. ForkJoinPool's innate work-stealing does a great job handling the unequal tasks and keeping cores busy. It exceled with a granularity of 100th of a millisecond.
 
 ### Historically
 Previous (v5 and lower) versions implemented suboptimal parallelization.
