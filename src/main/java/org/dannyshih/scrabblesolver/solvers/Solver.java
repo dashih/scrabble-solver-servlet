@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -52,10 +53,16 @@ public abstract class Solver {
 
         try {
             final SolveOperationState opState = new SolveOperationState(
-                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, logger);
+                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, logger, new ConcurrentLinkedQueue<>());
 
             doSolve(combinations, opState);
 
+            opState.opTimes.stream().mapToDouble(d -> d).average().ifPresent(
+                    d -> logger.log("Solver :: avg op - " + d + " ms"));
+            opState.opTimes.stream().mapToDouble(d -> d).min().ifPresent(
+                    d -> logger.log("Solver :: min op - " + d + " ms"));
+            opState.opTimes.stream().mapToDouble(d -> d).max().ifPresent(
+                    d -> logger.log("Solver :: max op - " + d + " ms"));
             progress.finish();
         } catch (CancellationException ce) {
             logger.log("Solver :: canceled!");
