@@ -1,10 +1,10 @@
 package org.dannyshih.scrabblesolver.solvers;
 
+import com.google.common.math.BigIntegerMath;
 import org.dannyshih.scrabblesolver.Progress;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
@@ -29,7 +29,7 @@ final class Permuter extends RecursiveAction {
 
     private final StringBuilder m_sb;
     private final int m_idx;
-    private final Set<String> m_dictionary;
+    private final Trie m_dictionary;
     private final int m_minCharacters;
     private final Pattern m_regex;
     private final Progress m_progress;
@@ -37,7 +37,8 @@ final class Permuter extends RecursiveAction {
 
     Permuter(
             StringBuilder sb,
-            int idx, Set<String> dictionary,
+            int idx,
+            Trie dictionary,
             int minCharacters,
             Pattern regex,
             Progress progress,
@@ -54,29 +55,26 @@ final class Permuter extends RecursiveAction {
     @Override
     protected void compute() {
         if (m_sb.length() - m_idx <= THRESHOLD) {
-            final long numProcessed = Solver.permute(m_sb, m_idx, m_isCancellationRequested, permutation -> {
-                if (m_dictionary.contains(permutation) &&
-                    permutation.length() >= m_minCharacters &&
-                    m_regex.matcher(permutation).matches()) {
-
-                    m_progress.addSolution(permutation);
-                }
-            });
-
             // We can get away with updating progress on task completion instead of every permutation, because the
-            // biggest tasks only require 200 ms to complete (so that's the maximum amount of time between status
-            // updates). The serial solver must update on every permutation, because otherwise, it might get stuck
-            // processing a large string and not provide a status update for hours.
-            m_progress.addNumProcessed(numProcessed);
+            // parallel solver breaks down the work into very small tasks. So tasks will always be completing at a high
+            // clip, and UI updates will happen at the same rate.
+            // The serial solver must update on every permutation, because otherwise, it might get stuck
+            // processing a large string and not provide a status update for a long time.
+            m_progress.addNumProcessed(permute(m_sb, m_idx));
         } else {
-            ForkJoinTask.invokeAll(createSubtasks());
+            // Prune before even submitting subtasks.
+            if (m_idx > 0 && !m_dictionary.beginsWord(m_sb.substring(0, m_idx))) {
+                m_progress.addNumProcessed(BigIntegerMath.factorial(m_sb.length() - m_idx).longValueExact());
+            } else {
+                ForkJoinTask.invokeAll(createSubtasks());
+            }
         }
     }
 
     private List<Permuter> createSubtasks() {
         final List<Permuter> subtasks = new ArrayList<>();
         for (int i = m_idx; i < m_sb.length(); i++) {
-            Solver.swap(m_sb, m_idx, i);
+            Utils.swap(m_sb, m_idx, i);
             subtasks.add(new Permuter(
                     new StringBuilder(m_sb),
                     m_idx + 1,
@@ -85,9 +83,37 @@ final class Permuter extends RecursiveAction {
                     m_regex,
                     m_progress,
                     m_isCancellationRequested));
-            Solver.swap(m_sb, m_idx, i);
+            Utils.swap(m_sb, m_idx, i);
         }
 
         return subtasks;
+    }
+
+    private long permute(StringBuilder sb, int idx) {
+        if (m_isCancellationRequested.get()) {
+            throw new CancellationException();
+        }
+
+        if (idx == sb.length()) {
+            final String s = sb.toString();
+            if (m_dictionary.isWord(s) && s.length() >= m_minCharacters && m_regex.matcher(s).matches()) {
+                m_progress.addSolution(s);
+            }
+
+            return 1L;
+        }
+
+        if (idx > 0 && !m_dictionary.beginsWord(sb.substring(0, idx))) {
+            return BigIntegerMath.factorial(sb.length() - idx).longValueExact();
+        }
+
+        long numProcessed = 0L;
+        for (int i = idx; i < sb.length(); i++) {
+            Utils.swap(sb, idx, i);
+            numProcessed += permute(sb, idx + 1);
+            Utils.swap(sb, idx, i);
+        }
+
+        return numProcessed;
     }
 }

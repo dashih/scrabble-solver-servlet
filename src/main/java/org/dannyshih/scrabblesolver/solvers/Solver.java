@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,10 +23,11 @@ import javax.servlet.ServletContext;
 public abstract class Solver {
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    protected final Set<String> m_dictionary;
+    protected final Trie m_dictionary;
+    private ServletContext m_servletContext;
 
     public Solver() throws IOException {
-        m_dictionary = new HashSet<>();
+        m_dictionary = new Trie();
         populateDictionary();
     }
 
@@ -37,8 +36,13 @@ public abstract class Solver {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCancellationRequested,
-            ServletContext ctx);
+            AtomicBoolean isCancellationRequested);
+
+    protected void log(String msg) {
+        if (m_servletContext != null) {
+            m_servletContext.log(msg);
+        }
+    }
 
     public void solve(
             String input,
@@ -46,8 +50,9 @@ public abstract class Solver {
             Pattern regex,
             Progress progress,
             AtomicBoolean isCancellationRequested,
-            ServletContext ctx) {
+            ServletContext servletContext) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
+        m_servletContext = servletContext;
 
         final List<StringBuilder> combinations = new ArrayList<>();
         final AtomicLong totalPermutations = new AtomicLong();
@@ -57,26 +62,27 @@ public abstract class Solver {
         });
 
         progress.start(totalPermutations.get());
-        ctx.log("Solver :: generated combinations: " + combinations.size());
+        log("Solver :: generated combinations: " + combinations.size());
 
         try {
-            doSolve(combinations, minCharacters, regex, progress, isCancellationRequested, ctx);
+            doSolve(combinations, minCharacters, regex, progress, isCancellationRequested);
             progress.finish();
         } catch (CancellationException ce) {
-            ctx.log("Solver :: canceled!");
+            log("Solver :: canceled!");
             progress.cancel();
+        } finally {
+            m_servletContext = null;
         }
     }
 
     private void populateDictionary() throws IOException {
         InputStream in = Preconditions.checkNotNull(getClass().getResourceAsStream("/dictionary.txt"));
         try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            br.lines().forEach(m_dictionary::add);
+            br.lines().forEach(m_dictionary::addWord);
         }
     }
 
     private static void generateCombinationsWithBlanks(StringBuilder sb, Consumer<StringBuilder> combinationConsumer) {
-
         for (int i = 0; i < sb.length(); i++) {
             if (sb.charAt(i) == '*') {
                 for (char c : ALPHABET.toCharArray()) {
@@ -102,33 +108,5 @@ public abstract class Solver {
             getCombinations(sb, build, i + 1, combinationConsumer);
             build.deleteCharAt(build.length() - 1);
         }
-    }
-
-    static long permute(
-            StringBuilder sb, int idx, AtomicBoolean isCancellationRequested, Consumer<String> permutationConsumer) {
-        if (isCancellationRequested.get()) {
-            throw new CancellationException();
-        }
-
-        if (idx == sb.length()) {
-            String str = sb.toString();
-            permutationConsumer.accept(str);
-            return 1L;
-        }
-
-        long numProcessed = 0L;
-        for (int i = idx; i < sb.length(); i++) {
-            swap(sb, idx, i);
-            numProcessed += permute(sb, idx + 1, isCancellationRequested, permutationConsumer);
-            swap(sb, idx, i);
-        }
-
-        return numProcessed;
-    }
-
-    static void swap(StringBuilder sb, int idx0, int idx1) {
-        char tmp = sb.charAt(idx0);
-        sb.setCharAt(idx0, sb.charAt(idx1));
-        sb.setCharAt(idx1, tmp);
     }
 }

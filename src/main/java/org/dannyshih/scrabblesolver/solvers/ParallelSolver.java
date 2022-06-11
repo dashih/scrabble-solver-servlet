@@ -2,7 +2,6 @@ package org.dannyshih.scrabblesolver.solvers;
 
 import org.dannyshih.scrabblesolver.Progress;
 
-import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +30,8 @@ public final class ParallelSolver extends Solver {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCancellationRequested,
-            ServletContext ctx) {
-        ctx.log("ParallelSolver :: parallelism - " + m_pool.getParallelism());
+            AtomicBoolean isCancellationRequested) {
+        log("ParallelSolver :: parallelism - " + m_pool.getParallelism());
         final List<ForkJoinTask<Void>> tasks = new ArrayList<>();
         combinations.forEach(combination ->
                 tasks.add(m_pool.submit(new Permuter(
@@ -61,6 +59,6 @@ public final class ParallelSolver extends Solver {
             throw new CancellationException();
         }
 
-        ctx.log("ParallelSolver:: steal count: " + m_pool.getStealCount());
+        log("ParallelSolver:: steal count: " + m_pool.getStealCount());
     }
 }
