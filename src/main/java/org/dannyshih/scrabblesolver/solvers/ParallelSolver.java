@@ -3,11 +3,8 @@ package org.dannyshih.scrabblesolver.solvers;
 import org.dannyshih.scrabblesolver.Progress;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -32,32 +29,14 @@ public final class ParallelSolver extends Solver {
             Progress progress,
             AtomicBoolean isCancellationRequested) {
         log("ParallelSolver :: parallelism - " + m_pool.getParallelism());
-        final List<ForkJoinTask<Void>> tasks = new ArrayList<>();
-        combinations.forEach(combination ->
-                tasks.add(m_pool.submit(new Permuter(
-                        combination,
-                        0,
-                        m_dictionary,
-                        minCharacters,
-                        regex,
-                        progress,
-                        isCancellationRequested))));
 
-        // Wait on all tasks even if canceled.
-        // Otherwise, we might tell the user cancellation was successful but still have running zombie tasks.
-        AtomicBoolean isCanceled = new AtomicBoolean();
-        tasks.forEach(task -> {
-            try {
-                task.join();
-            } catch (CancellationException ignored) {
-                isCanceled.set(true);
-            }
-        });
-
-        if (isCanceled.get()) {
-            // The base Solver requires a CE to detect cancellation.
-            throw new CancellationException();
-        }
+        m_pool.submit(new BatchPermuter(
+                combinations,
+                m_dictionary,
+                minCharacters,
+                regex,
+                progress,
+                isCancellationRequested)).join();
 
         log("ParallelSolver:: steal count: " + m_pool.getStealCount());
     }
