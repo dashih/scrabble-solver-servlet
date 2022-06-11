@@ -10,7 +10,7 @@ public final class SequentialSolver extends Solver {
 
     @Override
     protected void doSolve(List<StringBuilder> combinations, SolveOperationState state) {
-        state.log("SequentialSolver :: solving...");
+        state.logger.log("SequentialSolver :: solving...");
         combinations.forEach(combination -> state.progress.addNumProcessed(Utils.permute(
                 combination, 0, state)));
     }

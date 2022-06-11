@@ -136,7 +136,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
                         regex,
                         op.progress,
                         op.isCancellationRequested,
-                        getServletContext());
+                        new Logger(getServletContext()));
 
             } catch (Exception e) {
                 log(e.toString());

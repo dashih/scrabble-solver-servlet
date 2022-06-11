@@ -19,8 +19,8 @@ public final class ParallelSolver extends Solver {
 
     @Override
     protected void doSolve(List<StringBuilder> combinations, SolveOperationState state) {
-        state.log("ParallelSolver :: parallelism - " + m_pool.getParallelism());
+        state.logger.log("ParallelSolver :: parallelism - " + m_pool.getParallelism());
         m_pool.submit(new BatchPermuter(combinations, state)).join();
-        state.log("ParallelSolver:: steal count: " + m_pool.getStealCount());
+        state.logger.log("ParallelSolver:: steal count: " + m_pool.getStealCount());
     }
 }

@@ -34,7 +34,7 @@ public final class SolverTest {
         final int minCharacters = 8;
         final Pattern regex = Pattern.compile("A.+");
         final Progress progress = new Progress();
-        solver.solve(input, minCharacters, regex, progress, new AtomicBoolean(), null);
+        solver.solve(input, minCharacters, regex, progress, new AtomicBoolean(), new Logger());
 
         Assertions.assertEquals(numExpected, progress.toSerializable().solutions.size());
         expected.forEach(expectedSolution ->

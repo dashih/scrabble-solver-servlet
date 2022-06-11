@@ -16,9 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.math.BigIntegerMath;
+import org.dannyshih.scrabblesolver.Logger;
 import org.dannyshih.scrabblesolver.Progress;
-
-import javax.servlet.ServletContext;
 
 public abstract class Solver {
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -38,7 +37,7 @@ public abstract class Solver {
             Pattern regex,
             Progress progress,
             AtomicBoolean isCancellationRequested,
-            ServletContext servletContext) {
+            Logger logger) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
 
         final List<StringBuilder> combinations = new ArrayList<>();
@@ -49,17 +48,17 @@ public abstract class Solver {
         });
 
         progress.start(totalPermutations.get());
-        servletContext.log("Solver :: generated combinations: " + combinations.size());
+        logger.log("Solver :: generated combinations: " + combinations.size());
 
         try {
             final SolveOperationState opState = new SolveOperationState(
-                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, servletContext);
+                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, logger);
 
             doSolve(combinations, opState);
 
             progress.finish();
         } catch (CancellationException ce) {
-            servletContext.log("Solver :: canceled!");
+            logger.log("Solver :: canceled!");
             progress.cancel();
         }
     }

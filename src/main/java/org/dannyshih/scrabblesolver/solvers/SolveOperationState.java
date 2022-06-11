@@ -1,8 +1,8 @@
 package org.dannyshih.scrabblesolver.solvers;
 
+import org.dannyshih.scrabblesolver.Logger;
 import org.dannyshih.scrabblesolver.Progress;
 
-import javax.servlet.ServletContext;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -12,8 +12,7 @@ final class SolveOperationState {
     final Pattern regex;
     final Progress progress;
     final AtomicBoolean isCancellationRequested;
-
-    private final ServletContext servletContext;
+    final Logger logger;
 
     SolveOperationState(
             Trie dictionary,
@@ -21,16 +20,12 @@ final class SolveOperationState {
             Pattern regex,
             Progress progress,
             AtomicBoolean isCancellationRequested,
-            ServletContext servletContext) {
+            Logger logger) {
         this.dictionary = dictionary;
         this.minCharacters = minCharacters;
         this.regex = regex;
         this.progress = progress;
         this.isCancellationRequested = isCancellationRequested;
-        this.servletContext = servletContext;
-    }
-
-    void log(String msg) {
-        servletContext.log(msg);
+        this.logger = logger;
     }
 }
