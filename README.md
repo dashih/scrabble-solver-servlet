@@ -10,6 +10,7 @@ A Java servlet for cheating at scrabble =)
 | 4       | Cancelable operations |
 | 5       | Reconnect to running operations |
 | 6       | PERFORMANCE - Rewrite of the parallel solver to use Java ForkJoin. Many other optimizations! |
+| 7       | PERFORMANCE - Use a Trie to prune the permutation tree |
 
 ## Deployment
 The project includes a dictionary: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary.
@@ -23,13 +24,15 @@ Deploy in any container server (tested on Tomcat 8 and 9).
 ## Algorithm
 Combinations, including blanks, are generated for the input string. These combinations are then permuted, and each permutation is checked against the dictionary to find solutions.
 
-## Performance
-A casual player is rarely solving inputs longer than 8 characters. Even including 2 blanks/wildcards, modern hardware has no problem producing the solution in seconds using a serial implementation of the algorithm described above.
+The permutation tree is pruned if it is found that no solutions are possible from that subtree. A Trie data structure is used for the dictionary to optimize the pruning process.
 
-Permutation does rapidly become more expensive after 11 characters. So larger inputs become interesting from a parallelization perspective.
+## Performance
+As of 2022 (on Amazon EC2 c6a instances - 3rd generation AMD EPYC processors), the most demanding practical parameters for this program can challenge a serial implementation of the above algorithm. It takes more than 10 minute to solve a query for the longest scrabble word with two blanks.
+
+![Alt text](readme-img/15chars-twoblanks_serial.png?raw=true)
 
 ## Parallelization
-The first step of the algorithm, generating combinations, is still done serially. Processing the set of combinations is parallelized by submitting each to a worker pool.
+The first step of the algorithm, generating combinations, is done serially. Processing the set of combinations is parallelized by submitting each to a worker pool.
 
 ### Parallel permutation
 If they are large enough, individual string permutation is parallelized using the following method. Take each character in the permutation range and create a child string that starts with that character. These child strings can be permuted from the next character onwards to produce the same results as permuting the parent string. The child string permutations can be done in parallel, and the permutation range is reduced by one. This process is recursed in a divide-and-conquer manner until the permutation range is small enough to process directly.
