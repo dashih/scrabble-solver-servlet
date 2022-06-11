@@ -24,25 +24,13 @@ public abstract class Solver {
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     protected final Trie m_dictionary;
-    private ServletContext m_servletContext;
 
     public Solver() throws IOException {
         m_dictionary = new Trie();
         populateDictionary();
     }
 
-    protected abstract void doSolve(
-            List<StringBuilder> combinations,
-            int minCharacters,
-            Pattern regex,
-            Progress progress,
-            AtomicBoolean isCancellationRequested);
-
-    protected void log(String msg) {
-        if (m_servletContext != null) {
-            m_servletContext.log(msg);
-        }
-    }
+    protected abstract void doSolve(List<StringBuilder> combinations, SolveOperationState state);
 
     public void solve(
             String input,
@@ -52,7 +40,6 @@ public abstract class Solver {
             AtomicBoolean isCancellationRequested,
             ServletContext servletContext) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
-        m_servletContext = servletContext;
 
         final List<StringBuilder> combinations = new ArrayList<>();
         final AtomicLong totalPermutations = new AtomicLong();
@@ -62,16 +49,18 @@ public abstract class Solver {
         });
 
         progress.start(totalPermutations.get());
-        log("Solver :: generated combinations: " + combinations.size());
+        servletContext.log("Solver :: generated combinations: " + combinations.size());
 
         try {
-            doSolve(combinations, minCharacters, regex, progress, isCancellationRequested);
+            final SolveOperationState opState = new SolveOperationState(
+                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, servletContext);
+
+            doSolve(combinations, opState);
+
             progress.finish();
         } catch (CancellationException ce) {
-            log("Solver :: canceled!");
+            servletContext.log("Solver :: canceled!");
             progress.cancel();
-        } finally {
-            m_servletContext = null;
         }
     }
 

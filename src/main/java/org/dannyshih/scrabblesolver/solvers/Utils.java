@@ -1,42 +1,32 @@
 package org.dannyshih.scrabblesolver.solvers;
 
 import com.google.common.math.BigIntegerMath;
-import org.dannyshih.scrabblesolver.Progress;
 
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 final class Utils {
-    static long permute(
-            StringBuilder sb,
-            int idx,
-            Trie dictionary,
-            int minCharacters,
-            Pattern regex,
-            Progress progress,
-            AtomicBoolean isCancellationRequested) {
-        if (isCancellationRequested.get()) {
+    static long permute(StringBuilder sb, int idx, SolveOperationState state) {
+        if (state.isCancellationRequested.get()) {
             throw new CancellationException();
         }
 
         if (idx == sb.length()) {
             final String s = sb.toString();
-            if (dictionary.isWord(s) && s.length() >= minCharacters && regex.matcher(s).matches()) {
-                progress.addSolution(s);
+            if (state.dictionary.isWord(s) && s.length() >= state.minCharacters && state.regex.matcher(s).matches()) {
+                state.progress.addSolution(s);
             }
 
             return 1L;
         }
 
-        if (idx > 0 && !dictionary.beginsWord(sb.substring(0, idx))) {
+        if (idx > 0 && !state.dictionary.beginsWord(sb.substring(0, idx))) {
             return BigIntegerMath.factorial(sb.length() - idx).longValueExact();
         }
 
         long numProcessed = 0L;
         for (int i = idx; i < sb.length(); i++) {
             Utils.swap(sb, idx, i);
-            numProcessed += permute(sb, idx + 1, dictionary, minCharacters, regex, progress, isCancellationRequested);
+            numProcessed += permute(sb, idx + 1, state);
             Utils.swap(sb, idx, i);
         }
 
