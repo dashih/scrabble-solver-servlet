@@ -54,7 +54,7 @@ This program began as a college project right when I learned how to generate com
 Version 1 of this GitHub project is the port of the original program to a Java servlet. The UI was basic HTML/javascript.
 
 ### Version 2
-This was aesthetics release. Bootstrap 5 was used to make the UI pretty.
+This was the aesthetics release. Bootstrap 5 was used to make the UI pretty.
 
 ### Version 3
 Security. I don't want everyone to be able to launch an operation that saturates CPU and brings my personal server to its knees.
