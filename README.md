@@ -24,8 +24,13 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 ## Benchmarks
 15-characters, 2 blanks
 
-Amazon C6a EC2 instances (3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz)
+### Physical server - Intel Xeon E3-1220 v6 @ 3.00 GHz
+| Cores    | Time (s) | Speedup | Efficiency |
+| -------- | -------- | ------- | ---------- |
+| Serial   | 600      |         |            |
+| 4-core   | 202      | 2.97x   | 74.2%      |
 
+### Amazon C6a EC2 instances (3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz)
 | Cores    | Time (s) | Speedup | Efficiency |
 | -------- | -------- | ------- | ---------- |
 | Serial   | 643      |         |            |
@@ -73,15 +78,15 @@ This version implemented a divide-and-conquer approach using Java's Fork/Join fr
 Parallelization efficiency was 99% with this version for large inputs. The sheer amount of work outweighed any overhead.
 
 ### Version 7
-I finally became wise. Given that the dictionary of valid words is extremely small compared to the number of permutations for a large input, there's a massive opportunity to prune the permutation tree. The algorithm can bail whenever the current permutation point can never result in a valid word. A Trie can optimize this process. 
+I finally became wise to the optimization that matters most. Given that the dictionary of valid words is extremely small compared to the number of permutations for a large input, there's a massive opportunity to prune the permutation tree. The algorithm can bail whenever the current permutation point can never result in a valid word. For example, if the current permutation point is "VC...", the we can stop permuting even if there are 100 following characters, because no valid word begins with "VC". For a large input, a prune early on like this can skip literally hours of work. A Trie is the perfect data structure for efficiently computing whether a string is a beginning point for any word.
 
-I found that 99.99% of permutations could be pruned. At this rate, no individual operation is ever long enough to require parallelizing permutation of individual strings as was done in version 6. So that algorithm was removed.
+I found that 99.99% of permutations can be pruned for a typical large input. At this rate, no individual operation is ever long enough to require parallelizing permutation of individual strings as was done in version 6. So that algorithm was removed.
 
 With operations being so quick, the overhead of submitting tasks for every combination became the bottleneck. This version implements batch processing of the combinations. Still using the Fork/Join framework, the set of combinations is continually divided in half until the batch size is manageable.
 
-The performance improvement in this version is astounding. For a 15-character 0-blanks input, the original parallel solver (versions 5 and below) required 2 days to produce a solution; the serial algorithm was not even worth running. The parallel solver in version 6 required 40 minutes. The SERIAL solver in this version requires seconds.
+The performance improvement in this version is astounding. For a 15-character 0-blanks input, the original parallel solver (versions 5 and below) required 2 days to produce a solution; the serial algorithm was not even worth running. The parallel solver in version 6 required 40 minutes. The **serial** solver in this version requires seconds.
 
-This version brought about a new benchmark, 15-characters with 2-blanks. Parallelization gains are good, but efficiency could be improved.
+As such, this version brought about a new benchmark, 15-characters with 2-blanks. Parallelization gains are good. Efficiency is in the 65-80% range, which is respectable.
 
 ## Eye candy
 
