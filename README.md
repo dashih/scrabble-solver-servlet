@@ -82,3 +82,9 @@ With operations being so quick, the overhead of submitting tasks for every combi
 The performance improvement in this version is astounding. For a 15-character 0-blanks input, the original parallel solver (versions 5 and below) required 2 days to produce a solution; the serial algorithm was not even worth running. The parallel solver in version 6 required 40 minutes. The SERIAL solver in this version requires seconds.
 
 This version brought about a new benchmark, 15-characters with 2-blanks. Parallelization gains are good, but efficiency could be improved.
+
+## Eye candy
+
+![Alt text](readme-img/15chars-2blanks_96cores.png?raw=true)
+
+![Alt text](readme-img/CPU.png?raw=true)
