@@ -8,6 +8,13 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A RecursiveAction class that permutes a collection of strings.
+ * If the collection size is less than a threshold, permute the collection directly.
+ * Otherwise, divide the collection in half and process in parallel.
+ *
+ * @author dshih
+ */
 final class BatchPermuter extends RecursiveAction {
     private static final int THRESHOLD = 200;
 
