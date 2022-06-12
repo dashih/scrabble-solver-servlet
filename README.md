@@ -22,7 +22,7 @@ As of 2022 on Amazon C6a EC2 instances (3rd generation AMD EPYC processors, turb
 The first step of the algorithm, generating combinations, is done serially. Processing the set of combinations is parallelized by submitting each to a Java ForkJoinPool. The innate work-stealing of the Fork/Join framework works quite well for this scenario.
 
 ## Benchmarks
-15-characters, 2 blanks
+15-characters, 2 blanks (over 181 trillion permutations)
 
 ### Physical server - Intel Xeon E3-1220 v6 @ 3.00 GHz
 | Cores    | Time (s) | Speedup | Efficiency |
@@ -54,24 +54,24 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 | 7       | PERFORMANCE - Use a Trie to prune the permutation tree |
 
 ### Version 1
-This program began as a college project right when I learned how to generate combinations and permutations for a string. This project is archived at https://github.com/dashih/ScrabbleSolver.
+This project began in college right when I learned the basic algorithm for generating string combinations and permutations. The original implemention was in C for no good reason and only supported descrambling fixed-length strings. The next iteration was a Java command-line application, now archived at https://github.com/dashih/ScrabbleSolver.
 
 Version 1 of this GitHub project is the port of the original program to a Java servlet. The UI was basic HTML/javascript.
 
 ### Version 2
-This was the aesthetics release. Bootstrap 5 was used to make the UI pretty.
+This was the aesthetics release. Bootstrap 5 makes the UI pretty.
 
 ### Version 3
 Security. I don't want everyone to be able to launch an operation that saturates CPU and brings my personal server to its knees.
 
 ### Version 4
-Being able to cancel running operations requires some thinking and plumbing.
+The ability to cancel operations is mainly a plumbing exercise.
 
 ### Version 5
-Implemented basic in-memory sessions for solve operations, so you can close the browser and see the solution for your operation later.
+Implemented basic in-memory sessions for solve operations, so solutions can be viewed later after closing a browser tab.
 
 ### Version 6
-The parallel solver in Versions 5 and lower used parallelStream() to parallelize processing of the set of combinations. For long strings where permutation cost increases quickly, some cores could be stuck with long pole work long after others finished and became idle. Also, the paralllel solver updated a numProcessed AtomicLong for every permutation, which was a bottleneck with killed performance.
+The parallel solver in versions 5 and lower used parallelStream() to parallelize processing of the set of combinations. For long strings where permutation cost increases quickly, some cores could be stuck with long pole work long after others finished and became idle. Also, the paralllel solver updated a numProcessed AtomicLong for every permutation, which was a bottleneck that killed performance.
 
 This version implemented a divide-and-conquer approach using Java's Fork/Join framwork. If strings are large enough, individual string permutation is parallelized using the following method. Take each character in the permutation range and create a child string that starts with that character. These child strings can be permuted from the next character onwards to produce the same results as permuting the parent string. The child string permutations can be done in parallel, and the permutation range is reduced by one. This process is recursed in a divide-and-conquer manner until the permutation range is small enough to process directly.
 
