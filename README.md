@@ -54,7 +54,7 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 | 7       | PERFORMANCE - Use a Trie to prune the permutation tree |
 
 ### Version 1
-This project began in college right when I learned the basic algorithm for generating string combinations and permutations. The original implemention was in C for no good reason and only supported descrambling fixed-length strings. The next iteration was a Java command-line application, now archived at https://github.com/dashih/ScrabbleSolver.
+This project began in college right when I learned the basic algorithm for generating string permutations. The original implemention was in C for no good reason; it was complex, only supported descrambling fixed-length strings, and did not support blanks. The next iteration was a Java command-line application.
 
 Version 1 of this GitHub project is the port of the original program to a Java servlet. The UI was basic HTML/javascript.
 
