@@ -23,6 +23,7 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 
 ## Benchmarks
 15-characters, 2 blanks
+
 Amazon C6a EC2 instances (3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz)
 
 | Cores    | Time (s) | Speedup | Efficiency |
@@ -76,4 +77,4 @@ I finally became wise. Given that the dictionary of valid words is extremely sma
 
 The performance improvement in this version is astounding. For a 15-character 0-blanks input, the original parallel solver (versions 5 and below) required 2 days to produce a solution; the serial algorithm was not even worth running. The parallel solver in version 6 required 40 minutes. The SERIAL solver in this version requires seconds.
 
-This version brought about a new benchmark input, 15-characters with 2-blanks.
+This version brought about a new benchmark input, 15-characters with 2-blanks. Parallelization efficiency is not nearly as good unfortunately.
