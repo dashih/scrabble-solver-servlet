@@ -63,7 +63,7 @@ Security. I don't want everyone to be able to launch an operation that saturates
 Being able to cancel running operations requires some thinking and plumbing.
 
 ### Version 5
-If you run an long operation and close the browser, how can you see the results. Version 5 allowed basic in-memory sessions for solve operations.
+Implemented basic in-memory sessions for solve operations, so you can close the browser and see the solution for your operation later.
 
 ### Version 6
 The parallel solver in Versions 5 and lower used parallelStream() to parallelize processing of the set of combinations. For long strings where permutation cost increases quickly, some cores could be stuck with long pole work long after others finished and became idle. Also, the paralllel solver updated a numProcessed AtomicLong for every permutation, which was a bottleneck with killed performance.
