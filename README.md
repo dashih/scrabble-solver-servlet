@@ -73,8 +73,12 @@ This version implemented a divide-and-conquer approach using Java's Fork/Join fr
 Parallelization efficiency was 99% with this version for large inputs. The sheer amount of work outweighed any overhead.
 
 ### Version 7
-I finally became wise. Given that the dictionary of valid words is extremely small compared to the number of permutations for a large input, there's a massive opportunity to prune the permutation tree. The algorithm can bail whenever the current permutation point can never result in a valid word. A Trie can optimize this process. I found that 99.99% of permutations could be pruned.
+I finally became wise. Given that the dictionary of valid words is extremely small compared to the number of permutations for a large input, there's a massive opportunity to prune the permutation tree. The algorithm can bail whenever the current permutation point can never result in a valid word. A Trie can optimize this process. 
+
+I found that 99.99% of permutations could be pruned. At this rate, no individual operation is ever long enough to require parallelizing permutation of individual strings as was done in version 6. So that algorithm was removed.
+
+With operations being so quick, the overhead of submitting tasks for every combination became the bottleneck. This version implements batch processing of the combinations. Still using the Fork/Join framework, the set of combinations is continually divided in half until the batch size is manageable.
 
 The performance improvement in this version is astounding. For a 15-character 0-blanks input, the original parallel solver (versions 5 and below) required 2 days to produce a solution; the serial algorithm was not even worth running. The parallel solver in version 6 required 40 minutes. The SERIAL solver in this version requires seconds.
 
-This version brought about a new benchmark input, 15-characters with 2-blanks. Parallelization efficiency is not nearly as good unfortunately.
+This version brought about a new benchmark, 15-characters with 2-blanks. Parallelization gains are good, but efficiency could be improved.
