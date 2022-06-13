@@ -46,13 +46,19 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 ## Benchmarks
 15-characters, 2 blanks (over 181 trillion permutations)
 
-### Physical server - Intel Xeon E3-1220 v6 @ 3.00 GHz
+### MacBook Pro (2019) - Intel Core i9 2.4 GHz
+| Cores    | Time (s) | Speedup | Efficiency |
+| -------- | -------- | ------- | ---------- |
+| Serial   | 472      |         |            |
+| 8-core   | 79       | 5.97x   | 74.7%      |
+
+### Ubuntu 20.04 server - Intel Xeon E3-1220 v6 @ 3.00 GHz
 | Cores    | Time (s) | Speedup | Efficiency |
 | -------- | -------- | ------- | ---------- |
 | Serial   | 600      |         |            |
 | 4-core   | 195      | 3.08x   | 76.9%      |
 
-### Amazon C6a EC2 instances (3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz)
+### Amazon C6a EC2 instances - Amazon Linux 2 - 3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz
 | Cores    | Time (s) | Speedup | Efficiency |
 | -------- | -------- | ------- | ---------- |
 | Serial   | 643      |         |            |
