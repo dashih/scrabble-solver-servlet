@@ -4,12 +4,23 @@ A Java servlet for helping at Scrabble/Words with Friends =)
 ## Deployment
 https://hub.docker.com/r/spacechip/scrabble-solver
 
-### Manual deployment
-A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary.
+### Configuration
+| Environment variable                        | Default | Description |
+| ------------------------------------------- | -------- | ------- |
+| SCRABBLE_SOLVER_PASSWORD                    |          | Setting this causes the UI to show a password field. A user must input the password that matches this value in order to submit solve operations. |
+| SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
+| SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
 
-`./gradlew war`
 
-Deploy in any container server (tested on Tomcat 9). TLS must be enabled or some of the client javascript will not work. Password-based authentication is enabled by setting the environment variable `SCRABBLE_SOLVER_PASSWORD`.
+### Building and manual deployment
+A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included prior to building the war.
+
+```
+./gradlew build
+./gradlew war
+```
+
+Deploy in any container server (tested on Tomcat 9). TLS must be enabled or some of the client javascript will not work.
 
 ### Building the docker image
 Credentials for Docker Hub must be set up. Installing Docker Desktop on MacOSX and signing in takes care of this. The following command will then build the docker image and push it to Docker Hub.
@@ -38,7 +49,7 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 | Cores    | Time (s) | Speedup | Efficiency |
 | -------- | -------- | ------- | ---------- |
 | Serial   | 600      |         |            |
-| 4-core   | 202      | 2.97x   | 74.2%      |
+| 4-core   | 195      | 3.08x   | 76.9%      |
 
 ### Amazon C6a EC2 instances (3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz)
 | Cores    | Time (s) | Speedup | Efficiency |
