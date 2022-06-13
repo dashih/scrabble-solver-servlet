@@ -16,19 +16,23 @@ import java.util.concurrent.TimeUnit;
  * @author dshih
  */
 final class BatchPermuter extends RecursiveAction {
-    private static final int THRESHOLD = 200;
+    private static final String THRESHOLD_PROP = "SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD";
+    private static final int DEFAULT_THRESHOLD = 200;
 
     private final List<StringBuilder> m_combinations;
     private final SolveOperationState m_state;
+    private final int m_threshold;
 
     BatchPermuter(List<StringBuilder> combinations, SolveOperationState state) {
         m_combinations = combinations;
         m_state = state;
+        m_threshold = System.getenv(THRESHOLD_PROP) == null ?
+                DEFAULT_THRESHOLD : Integer.parseInt(System.getenv(THRESHOLD_PROP));
     }
 
     @Override
     protected void compute() {
-        if (m_combinations.size() < THRESHOLD) {
+        if (m_combinations.size() < m_threshold) {
             final Stopwatch sw = Stopwatch.createStarted();
             long numSmallPermsProcessed = 0;
             for (final StringBuilder combination : m_combinations) {

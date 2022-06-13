@@ -44,9 +44,10 @@ import java.util.stream.Collectors;
         "/api/cancel"
     })
 public final class ScrabbleSolverServlet extends HttpServlet {
-    private static final int NUM_THREADS = 4;
     private static final String VERSION_RESOURCE = "/version.txt";
     private static final String PASSWORD_PROP = "SCRABBLE_SOLVER_PASSWORD";
+    private static final String MAX_CONCURRENT_OPS_PROP = "SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS";
+    private static final int DEFAULT_NUM_THREADS = 4;
     private static final long REAP_PERIOD = 1; // minute
     private static final long DONE_KEEP_DAYS = 7; // days
 
@@ -60,16 +61,13 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     public ScrabbleSolverServlet() throws IOException {
         m_sequentialSolver = new SequentialSolver();
         m_parallelSolver = new ParallelSolver();
-        m_executor = Executors.newFixedThreadPool(NUM_THREADS);
         m_gson = new Gson();
         m_operations = new ConcurrentHashMap<>();
-
-        final String password = System.getenv(PASSWORD_PROP);
-        if (StringUtils.isNotBlank(password)) {
-            m_passwordHash = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
-        } else {
-            m_passwordHash = null;
-        }
+        m_executor = Executors.newFixedThreadPool(System.getenv(MAX_CONCURRENT_OPS_PROP) == null ?
+                DEFAULT_NUM_THREADS : Integer.parseInt(System.getenv(MAX_CONCURRENT_OPS_PROP)));
+        m_passwordHash = StringUtils.isBlank(System.getenv(PASSWORD_PROP)) ?
+                null :
+                Hashing.sha256().hashString(System.getenv(PASSWORD_PROP), StandardCharsets.UTF_8).toString();
 
         ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor();
         reaper.scheduleAtFixedRate(() -> m_operations.keySet().forEach(id -> {
