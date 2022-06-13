@@ -73,6 +73,7 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 | 5       | Reconnect to running operations |
 | 6       | PERFORMANCE - Rewrite of the parallel solver to use Java ForkJoin. |
 | 7       | PERFORMANCE - Use a Trie to prune the permutation tree |
+| 8       | Docker! |
 
 ### Version 1
 This project began in college right when I learned the basic algorithm for generating string permutations. The original implemention was in C for no good reason; it was complex, only supported descrambling fixed-length strings, and did not support blanks. The next iteration was a Java command-line application.
@@ -108,6 +109,9 @@ With operations being so quick, the overhead of submitting tasks for every combi
 The performance improvement in this version is astounding. For a 15-character 0-blanks input, the original parallel solver (versions 5 and below) required 2 days to produce a solution; the serial algorithm was not even worth running. The parallel solver in version 6 required 40 minutes. The **serial** solver in this version requires seconds.
 
 As such, this version brought about a new benchmark, 15-characters with 2-blanks. Parallelization gains are good. Efficiency is in the 65-80% range, which is respectable.
+
+### Version 8
+It's 2022 and everything is a docker container. Adds a dependency on Google's jib to easily produce a docker image for this project. Makes a number of things configurable via environment variables.
 
 ## Eye candy
 
