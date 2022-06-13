@@ -1,9 +1,10 @@
 plugins {
     id 'war'
+    id 'com.google.cloud.tools.jib' version '3.2.1'
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v7.4'
+version 'v7.5'
 
 repositories {
     mavenCentral()
@@ -27,6 +28,15 @@ task writeVersionFile {
 
 war {
     dependsOn writeVersionFile
+}
+
+jib {
+    to.image = 'spacechip/scrabble-solver'
+    from.image = 'tomcat:9.0.64-jdk17-temurin'
+    container {
+        appRoot = '/usr/local/tomcat/webapps/ROOT'
+        creationTime = '2022-06-12T21:23:10-07:00'
+    }
 }
 
 test {

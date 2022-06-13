@@ -3,6 +3,7 @@ package org.dannyshih.scrabblesolver;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.dannyshih.scrabblesolver.solvers.ParallelSolver;
 import org.dannyshih.scrabblesolver.solvers.SequentialSolver;
 import org.dannyshih.scrabblesolver.solvers.Solver;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 public final class ScrabbleSolverServlet extends HttpServlet {
     private static final int NUM_THREADS = 4;
     private static final String VERSION_RESOURCE = "/version.txt";
-    private static final String PASSWORD_RESOURCE = "/password.txt";
+    private static final String PASSWORD_PROP = "SCRABBLE_SOLVER_PASSWORD";
     private static final long REAP_PERIOD = 1; // minute
     private static final long DONE_KEEP_DAYS = 7; // days
 
@@ -62,12 +63,12 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         m_executor = Executors.newFixedThreadPool(NUM_THREADS);
         m_gson = new Gson();
         m_operations = new ConcurrentHashMap<>();
-        InputStream passwordResource = Preconditions.checkNotNull(getClass().getResourceAsStream(PASSWORD_RESOURCE));
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(passwordResource))) {
-            String password = reader.readLine();
+
+        final String password = System.getenv(PASSWORD_PROP);
+        if (StringUtils.isNotBlank(password)) {
             m_passwordHash = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read credentials file.", e);
+        } else {
+            m_passwordHash = null;
         }
 
         ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor();
@@ -116,7 +117,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         SolveParams solveParams = m_gson.fromJson(requestBody, SolveParams.class);
         Preconditions.checkNotNull(solveParams);
-        if (!m_passwordHash.equals(solveParams.passwordHash)) {
+        if (m_passwordHash != null && !m_passwordHash.equals(solveParams.passwordHash)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Wrong password.");
             return;
         }
@@ -210,6 +211,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             request.getServletContext().getEffectiveMinorVersion());
         v.java = System.getProperty("java.version");
         v.numCores = Runtime.getRuntime().availableProcessors();
+        v.isPasswordSet = m_passwordHash != null;
 
         respond(response, v);
     }
@@ -262,6 +264,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String servletApi;
         String java;
         int numCores;
+        boolean isPasswordSet;
     }
 
     private static final class CurrentlyRunningResponse {

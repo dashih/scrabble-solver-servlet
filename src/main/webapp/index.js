@@ -26,6 +26,9 @@ window.onload = async () => {
             Java Servlet API ${v.servletApi}
             Java ${v.java}
             ${v.numCores} cores`;
+        if (!v.isPasswordSet) {
+            document.getElementById('passwordDiv').style.display = 'none';
+        }
     } else {
         alert('Error getting app info: ' + response.status);
     }
