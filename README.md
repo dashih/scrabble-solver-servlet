@@ -2,13 +2,23 @@
 A Java servlet for helping at Scrabble/Words with Friends =)
 
 ## Deployment
-The project includes a dictionary: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary.
+https://hub.docker.com/r/spacechip/scrabble-solver
 
-The project expects `src/main/resources/password.txt` to contain the password used to authenticate users submitting a solve operation. This file must be present prior to building the war.
+### Manual deployment
+A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary.
 
 `./gradlew war`
 
-Deploy in any container server (tested on Tomcat 8 and 9).
+Deploy in any container server (tested on Tomcat 9). TLS must be enabled or some of the client javascript will not work. Password-based authentication is enabled by setting the environment variable `SCRABBLE_SOLVER_PASSWORD`.
+
+### Building the docker image
+Credentials for Docker Hub must be set up. Installing Docker Desktop on MacOSX and signing in takes care of this. The following command will then build the docker image and push it to Docker Hub.
+
+`./gradlew jib`
+
+To test locally, use the following command to publish the image to the local docker daemon.
+
+`./gradlew jibDockerBuild`
 
 ## Algorithm
 Combinations, including blanks, are generated for the input string. These combinations are then permuted, and each permutation is checked against the dictionary to find solutions.
