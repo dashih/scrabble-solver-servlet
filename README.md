@@ -2,6 +2,7 @@
 A Java servlet for helping at Scrabble/Words with Friends =)
 
 ## Deployment
+The easiest way to deploy this application is using Docker:
 https://hub.docker.com/r/spacechip/scrabble-solver
 
 ### Configuration
