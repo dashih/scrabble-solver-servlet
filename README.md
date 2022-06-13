@@ -56,7 +56,7 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 | Cores    | Time (s) | Speedup | Efficiency |
 | -------- | -------- | ------- | ---------- |
 | Serial   | 600      |         |            |
-| 4-core   | 195      | 3.08x   | 76.9%      |
+| 4-core   | 180      | 3.33x   | 83.3%      |
 
 ### Amazon C6a EC2 instances - Amazon Linux 2 - 3rd generation AMD EPYC processors, turbo frequency of 3.6 GHz
 | Cores    | Time (s) | Speedup | Efficiency |
