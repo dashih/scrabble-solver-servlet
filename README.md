@@ -8,7 +8,8 @@ https://hub.docker.com/r/spacechip/scrabble-solver
 ### Configuration
 | Environment variable                        | Default | Description |
 | ------------------------------------------- | -------- | ------- |
-| SCRABBLE_SOLVER_PASSWORD                    |          | Setting this causes the UI to show a password field. A user must input the password that matches this value in order to submit solve operations. |
+| SCRABBLE_SOLVER_PASSWORD_FILE               |          | Setting this causes the UI to show a password field. A user must input the password that matches the value read from this file.
+| SCRABBLE_SOLVER_PASSWORD                    |          | Same as SCRABBLE_SOLVER_PASSWORD_FILE except the password is stored directly in the variable |
 | SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
 | SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
 
