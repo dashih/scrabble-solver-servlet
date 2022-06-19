@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
     })
 public final class ScrabbleSolverServlet extends HttpServlet {
     private static final String VERSION_RESOURCE = "/version.txt";
+    private static final String PASSWORD_FILE_PROP = "SCRABBLE_SOLVER_PASSWORD_FILE";
     private static final String PASSWORD_PROP = "SCRABBLE_SOLVER_PASSWORD";
     private static final String MAX_CONCURRENT_OPS_PROP = "SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS";
     private static final int DEFAULT_NUM_THREADS = 4;
@@ -65,9 +68,10 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         m_operations = new ConcurrentHashMap<>();
         m_executor = Executors.newFixedThreadPool(System.getenv(MAX_CONCURRENT_OPS_PROP) == null ?
                 DEFAULT_NUM_THREADS : Integer.parseInt(System.getenv(MAX_CONCURRENT_OPS_PROP)));
-        m_passwordHash = StringUtils.isBlank(System.getenv(PASSWORD_PROP)) ?
+        final String password = getPassword();
+        m_passwordHash = password == null ?
                 null :
-                Hashing.sha256().hashString(System.getenv(PASSWORD_PROP), StandardCharsets.UTF_8).toString();
+                Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
 
         ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor();
         reaper.scheduleAtFixedRate(() -> m_operations.keySet().forEach(id -> {
@@ -86,6 +90,20 @@ public final class ScrabbleSolverServlet extends HttpServlet {
                     break;
             }
         }), REAP_PERIOD, REAP_PERIOD, TimeUnit.MINUTES);
+    }
+
+    private String getPassword() throws IOException {
+        String password;
+        if (StringUtils.isNotBlank(System.getenv(PASSWORD_FILE_PROP)) &&
+                Files.exists(Paths.get(System.getenv(PASSWORD_FILE_PROP)))) {
+            password = Files.readString(Paths.get(System.getenv(PASSWORD_FILE_PROP)));
+        } else if (StringUtils.isNotBlank(System.getenv(PASSWORD_PROP))) {
+            password = System.getenv(PASSWORD_PROP);
+        } else {
+            password = null;
+        }
+
+        return password;
     }
 
     @Override
