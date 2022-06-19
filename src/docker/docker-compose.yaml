@@ -6,7 +6,7 @@ services:
     image: nginx
     restart: unless-stopped
     ports:
-      - 5903:8443
+      - 44300:8443
     volumes:
       - ./conf.d:/etc/nginx/conf.d
       - ./tls:/etc/nginx/tls
