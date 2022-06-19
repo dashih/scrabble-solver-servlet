@@ -31,7 +31,11 @@ war {
 }
 
 jib {
-    to.image = 'spacechip/scrabble-solver'
+    to {
+        image = 'spacechip/scrabble-solver'
+        tags = [ project.version.toString() ]
+    }
+
     from.image = 'tomcat:9.0.64-jdk17-temurin'
     container {
         appRoot = '/usr/local/tomcat/webapps/ROOT'
