@@ -2,8 +2,13 @@
 A Java servlet for helping at Scrabble/Words with Friends =)
 
 ## Deployment
-The easiest way to deploy this application is using Docker:
-https://hub.docker.com/r/spacechip/scrabble-solver
+The easiest way to deploy this application is Docker.
+
+```
+git clone https://github.com/dashih/scrabble-solver-servlet
+cd scrabble-solver-servlet/src/docker
+
+```
 
 ### Configuration
 | Environment variable                        | Default | Description |
@@ -24,7 +29,7 @@ A default dictionary is included: `src/main/resources/dictionary.txt`. This file
 
 Deploy in any container server (tested on Tomcat 9). TLS must be enabled or some of the client javascript will not work.
 
-### Building the docker image
+#### Building the docker image
 Credentials for Docker Hub must be set up. Installing Docker Desktop on MacOSX and signing in takes care of this. The following command will then build the docker image and push it to Docker Hub.
 
 `./gradlew jib`
