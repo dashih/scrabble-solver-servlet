@@ -7,8 +7,13 @@ The easiest way to deploy this application is Docker.
 ```
 git clone https://github.com/dashih/scrabble-solver-servlet
 cd scrabble-solver-servlet/src/docker
-
+docker-compose up --detach --build
 ```
+
+Access `https://localhost:44300`. The port can be changed in `docker-compose.yaml`
+
+### Docker
+The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080 on insecure http.
 
 ### Configuration
 | Environment variable                        | Default | Description |
@@ -17,7 +22,6 @@ cd scrabble-solver-servlet/src/docker
 | SCRABBLE_SOLVER_PASSWORD                    |          | Same as SCRABBLE_SOLVER_PASSWORD_FILE except the password is stored directly in the variable |
 | SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
 | SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
-
 
 ### Building and manual deployment
 A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included prior to building the war.
