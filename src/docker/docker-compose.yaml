@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+  nginx:
+    container_name: scrabble-solver_nginx
+    image: nginx
+    restart: unless-stopped
+    ports:
+      - 5903:8443
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+      - ./tls:/etc/nginx/tls
+
+  scrabble-solver:
+    container_name: scrabble-solver_app
+    image: spacechip/scrabble-solver
+    restart: unless-stopped
