@@ -17,9 +17,9 @@ Navigate to `http://localhost:8081`. The port can be changed as needed.
 | SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
 
 ### Configuring docker deployment
-The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works if password authentication is disabled. But this application can quickly saturate all processors, so it's recommended to set a password, if you're running the applicatin long-term on a server hosting other stuff. Unfortunately, in most browsers, the application's client javascript that processes the password will only run on a secure connection (TLS). Therefore, it's additionally recommended to deploy the application container behind a reverse proxy that configures TLS.
+The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works if password authentication is disabled. But this application can quickly saturate all processors, so it's recommended to set a password if you're running the application on a production server. Unfortunately, in most browsers, the application's client javascript that processes the password will only run on a secure connection (TLS). Therefore, it's additionally recommended to deploy the application container behind a reverse proxy that configures TLS.
 
-This project contains an example docker-compose that deploys an nginx reverse proxy with a self-signed TLS.
+This project contains a sample docker-compose that deploys an nginx reverse proxy with a self-signed TLS in front of the application container. It also enables password authentication and overrides some configuration.
 
 ```
 git clone https://github.com/dashih/scrabble-solver-servlet
@@ -27,7 +27,7 @@ cd scrabble-solver-servlet/src/docker
 docker-compose up --detach --build
 ```
 
-Access `https://localhost:44300`. The port can be changed in `docker-compose.yaml`
+Access `https://localhost:44300`.
 
 ### Building and manual deployment
 A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included prior to building the war.
