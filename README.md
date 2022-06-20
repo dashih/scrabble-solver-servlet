@@ -4,16 +4,9 @@ A Java servlet for helping at Scrabble/Words with Friends =)
 ## Deployment
 The easiest way to deploy this application is Docker.
 
-```
-git clone https://github.com/dashih/scrabble-solver-servlet
-cd scrabble-solver-servlet/src/docker
-docker-compose up --detach --build
-```
+`docker run --name scrabble-solver --detach --publish 8081:8080 spacechip/scrabble-solver`
 
-Access `https://localhost:44300`. The port can be changed in `docker-compose.yaml`
-
-### Docker
-The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080 on insecure http.
+Navigate to `http://localhost:8081`. The port can be changed as needed.
 
 ### Configuration
 | Environment variable                        | Default | Description |
@@ -22,6 +15,19 @@ The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. Th
 | SCRABBLE_SOLVER_PASSWORD                    |          | Same as SCRABBLE_SOLVER_PASSWORD_FILE except the password is stored directly in the variable |
 | SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
 | SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
+
+### Configuring docker deployment
+The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works if password authentication is disabled. But this application can quickly saturate all processors, so it's recommended to set a password, if you're running the applicatin long-term on a server hosting other stuff. Unfortunately, in most browsers, the application's client javascript that processes the password will only run on a secure connection (TLS). Therefore, it's additionally recommended to deploy the application container behind a reverse proxy that configures TLS.
+
+This project contains an example docker-compose that deploys an nginx reverse proxy with a self-signed TLS.
+
+```
+git clone https://github.com/dashih/scrabble-solver-servlet
+cd scrabble-solver-servlet/src/docker
+docker-compose up --detach --build
+```
+
+Access `https://localhost:44300`. The port can be changed in `docker-compose.yaml`
 
 ### Building and manual deployment
 A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included prior to building the war.
