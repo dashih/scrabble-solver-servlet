@@ -30,6 +30,9 @@ docker-compose up --detach --build
 Access `https://localhost:44300`.
 
 ### Building and manual deployment
+This section is really only for contributing to development of this project.
+
+#### Building the application war
 A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included prior to building the war.
 
 ```
@@ -37,16 +40,16 @@ A default dictionary is included: `src/main/resources/dictionary.txt`. This file
 ./gradlew war
 ```
 
-Deploy in any container server (tested on Tomcat 9). TLS must be enabled or some of the client javascript will not work.
+Deploy in any container server (tested on Tomcat 9).
 
-#### Building the docker image
-Credentials for Docker Hub must be set up. Installing Docker Desktop on MacOSX and signing in takes care of this. The following command will then build the docker image and push it to Docker Hub.
-
-`./gradlew jib`
-
-To test locally, use the following command to publish the image to the local docker daemon.
+#### Building the application docker image
+This publishes the image to the local docker daemon:
 
 `./gradlew jibDockerBuild`
+
+To publish to an official docker repository, credentials must be set up in advance.
+
+`./gradlew jib`
 
 ## Algorithm
 Combinations, including blanks, are generated for the input string. These combinations are then permuted, and each permutation is checked against the dictionary to find solutions.
