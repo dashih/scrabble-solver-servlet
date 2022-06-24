@@ -49,7 +49,7 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private static final String VERSION_RESOURCE = "/version.txt";
     private static final String PASSWORD_FILE_PROP = "SCRABBLE_SOLVER_PASSWORD_FILE";
     private static final String PASSWORD_PROP = "SCRABBLE_SOLVER_PASSWORD";
-    private static final String MAX_CONCURRENT_OPS_PROP = "SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS";
+    private static final String MAX_CONCURRENT_OPS_PROP = "SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS";
     private static final int DEFAULT_NUM_THREADS = 4;
     private static final long REAP_PERIOD = 1; // minute
     private static final long DONE_KEEP_DAYS = 7; // days

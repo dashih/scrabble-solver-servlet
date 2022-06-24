@@ -6,7 +6,7 @@ services:
     image: nginx
     restart: unless-stopped
     ports:
-      - 44300:8443
+      - "44300:8443"
     volumes:
       - ./conf.d:/etc/nginx/conf.d
       - ./tls:/etc/nginx/tls
@@ -17,7 +17,8 @@ services:
     restart: unless-stopped
     environment:
       SCRABBLE_SOLVER_PASSWORD_FILE: /var/opt/password.txt
-      SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS: 8
-      SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD: 500
+      SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS: 8
+      SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD: 500
+      SCRABBLE_SOLVER_LOGS_STDOUT: true
     volumes:
       - ./credentials/password.txt:/var/opt/password.txt

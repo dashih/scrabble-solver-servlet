@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @author dshih
  */
 final class BatchPermuter extends RecursiveAction {
-    private static final String THRESHOLD_PROP = "SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD";
+    private static final String THRESHOLD_PROP = "SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD";
     private static final int DEFAULT_THRESHOLD = 200;
 
     private final List<StringBuilder> m_combinations;
