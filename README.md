@@ -11,16 +11,14 @@ Navigate to `http://localhost:8081`. The port can be changed as needed.
 ### Configuration
 | Environment variable                        | Default | Description |
 | ------------------------------------------- | -------- | ------- |
-| SCRABBLE_SOLVER_PASSWORD_FILE               |          | Setting this causes the UI to show a password field. A user must input the password that matches the value read from this file.
-| SCRABBLE_SOLVER_PASSWORD                    |          | Same as SCRABBLE_SOLVER_PASSWORD_FILE except the password is stored directly in the variable |
 | SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
 | SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
 | SCRABBLE_SOLVER_LOGS_STDOUT                 | false    | Logs using the servlet context or stdout. stdout is preferred if running in docker, since the docker logging driver will always ingest from stdout |
 
 ### Configuring docker deployment
-The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works if password authentication is disabled. But this application can quickly saturate all processors, so it's recommended to set a password if you're running the application on a production server. Unfortunately, in most browsers, the application's client javascript that processes the password will only run on a secure connection (TLS). Therefore, it's additionally recommended to deploy the application container behind a reverse proxy that configures TLS.
+The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works. But this application can quickly saturate all processors, so it's recommended to set up some kind of authentication if running on a production server.
 
-This project contains a sample docker-compose that deploys an nginx reverse proxy with a self-signed TLS in front of the application container. It also enables password authentication and overrides some configuration.
+This project contains a sample docker-compose that deploys an nginx reverse proxy in front of the application container. This proxy configures self-signed TLS and basic username/password authentication for solve operations.
 
 ```
 git clone https://github.com/dashih/scrabble-solver-servlet
