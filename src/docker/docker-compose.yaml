@@ -10,15 +10,14 @@ services:
     volumes:
       - ./conf.d:/etc/nginx/conf.d
       - ./tls:/etc/nginx/tls
+      # htpasswd -Bc -C 12 credentials/.htpasswd solver (dumbledore)
+      - ./credentials/.htpasswd:/var/www/static/.htpasswd
 
   scrabble-solver:
     container_name: scrabble-solver_app
     image: spacechip/scrabble-solver
     restart: unless-stopped
     environment:
-      SCRABBLE_SOLVER_PASSWORD_FILE: /var/opt/password.txt
       SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS: 8
       SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD: 500
       SCRABBLE_SOLVER_LOGS_STDOUT: true
-    volumes:
-      - ./credentials/password.txt:/var/opt/password.txt

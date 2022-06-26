@@ -5,14 +5,6 @@ var statusTask = undefined;
 var operation = undefined;
 var statusPending = false;
 
-async function sha256(password) {
-    const passwordEncoded = new TextEncoder().encode(password);
-    const hashBuffer =  await crypto.subtle.digest('SHA-256', passwordEncoded);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-}
-
 window.onload = async () => {
     document.getElementById('running').style.display = 'none';
     document.getElementById('currentlyRunningDiv').style.display = 'none';
@@ -26,9 +18,6 @@ window.onload = async () => {
             Java Servlet API ${v.servletApi}
             Java ${v.java}
             ${v.numCores} cores`;
-        if (!v.isPasswordSet) {
-            document.getElementById('passwordDiv').style.display = 'none';
-        }
     } else {
         alert('Error getting app info: ' + response.status);
     }
@@ -125,7 +114,6 @@ function watchOperation() {
 
 document.getElementById('solveButton').onclick = async () => {
     const solveParams = {
-        passwordHash: await sha256(document.getElementById('password').value),
         parallelMode: document.getElementById('mode').value === 'true',
         input: document.getElementById('input').value,
         regex: document.getElementById('regex').value,

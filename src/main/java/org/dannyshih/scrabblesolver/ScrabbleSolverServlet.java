@@ -47,8 +47,6 @@ import java.util.stream.Collectors;
     })
 public final class ScrabbleSolverServlet extends HttpServlet {
     private static final String VERSION_RESOURCE = "/version.txt";
-    private static final String PASSWORD_FILE_PROP = "SCRABBLE_SOLVER_PASSWORD_FILE";
-    private static final String PASSWORD_PROP = "SCRABBLE_SOLVER_PASSWORD";
     private static final String MAX_CONCURRENT_OPS_PROP = "SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS";
     private static final int DEFAULT_NUM_THREADS = 4;
     private static final long REAP_PERIOD = 1; // minute
@@ -59,7 +57,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     private final ExecutorService m_executor;
     private final Gson m_gson;
     private final ConcurrentMap<UUID, Operation> m_operations;
-    private final String m_passwordHash;
 
     public ScrabbleSolverServlet() throws IOException {
         m_sequentialSolver = new SequentialSolver();
@@ -68,10 +65,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         m_operations = new ConcurrentHashMap<>();
         m_executor = Executors.newFixedThreadPool(System.getenv(MAX_CONCURRENT_OPS_PROP) == null ?
                 DEFAULT_NUM_THREADS : Integer.parseInt(System.getenv(MAX_CONCURRENT_OPS_PROP)));
-        final String password = getPassword();
-        m_passwordHash = password == null ?
-                null :
-                Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
 
         ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor();
         reaper.scheduleAtFixedRate(() -> m_operations.keySet().forEach(id -> {
@@ -90,20 +83,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
                     break;
             }
         }), REAP_PERIOD, REAP_PERIOD, TimeUnit.MINUTES);
-    }
-
-    private String getPassword() throws IOException {
-        String password;
-        if (StringUtils.isNotBlank(System.getenv(PASSWORD_FILE_PROP)) &&
-                Files.exists(Paths.get(System.getenv(PASSWORD_FILE_PROP)))) {
-            password = Files.readString(Paths.get(System.getenv(PASSWORD_FILE_PROP)));
-        } else if (StringUtils.isNotBlank(System.getenv(PASSWORD_PROP))) {
-            password = System.getenv(PASSWORD_PROP);
-        } else {
-            password = null;
-        }
-
-        return password;
     }
 
     @Override
@@ -133,10 +112,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         SolveParams solveParams = m_gson.fromJson(requestBody, SolveParams.class);
         Preconditions.checkNotNull(solveParams);
-        if (m_passwordHash != null && !m_passwordHash.equals(solveParams.passwordHash)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Wrong password.");
-            return;
-        }
 
         final SolveResponse res = new SolveResponse(UUID.randomUUID());
         final Operation op = new Operation();
@@ -227,7 +202,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
             request.getServletContext().getEffectiveMinorVersion());
         v.java = System.getProperty("java.version");
         v.numCores = Runtime.getRuntime().availableProcessors();
-        v.isPasswordSet = m_passwordHash != null;
 
         respond(response, v);
     }
@@ -254,7 +228,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
     }
 
     private static final class SolveParams {
-        String passwordHash;
         boolean parallelMode;
         String input;
         String regex;
@@ -280,7 +253,6 @@ public final class ScrabbleSolverServlet extends HttpServlet {
         String servletApi;
         String java;
         int numCores;
-        boolean isPasswordSet;
     }
 
     private static final class CurrentlyRunningResponse {
