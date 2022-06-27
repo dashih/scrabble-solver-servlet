@@ -1,9 +1,7 @@
 package org.dannyshih.scrabblesolver;
 
 import com.google.common.base.Preconditions;
-import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
-import org.apache.commons.lang3.StringUtils;
 import org.dannyshih.scrabblesolver.solvers.ParallelSolver;
 import org.dannyshih.scrabblesolver.solvers.SequentialSolver;
 import org.dannyshih.scrabblesolver.solvers.Solver;
@@ -18,9 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;

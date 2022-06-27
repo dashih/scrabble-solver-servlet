@@ -40,6 +40,8 @@ public abstract class Solver {
             AtomicBoolean isCancellationRequested,
             Logger logger) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
+        logger.log(String.format("Solver :: solving %s (%d chars, %d blanks), %d minimum, matching %s",
+                input, input.length(), input.chars().filter(c -> c == '*').count(), minCharacters, regex.toString()));
 
         final List<StringBuilder> combinations = new ArrayList<>();
         final AtomicLong totalPermutations = new AtomicLong();
