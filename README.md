@@ -18,7 +18,7 @@ Navigate to `http://localhost:8081`. The port can be changed as needed.
 ### Configuring docker deployment
 The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works. But this application can quickly saturate all processors, so it's recommended to set up some kind of authentication if running on a production server.
 
-This project contains a sample docker-compose that deploys an nginx reverse proxy in front of the application container. This proxy configures self-signed TLS and basic username/password authentication for solve operations.
+This project contains a sample docker-compose that deploys an nginx reverse proxy in front of the application container. This proxy configures self-signed TLS for server authentication and client authentication for solve operations.
 
 ```
 git clone https://github.com/dashih/scrabble-solver-servlet
