@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v8.6'
+version 'v8.7'
 
 repositories {
     mavenCentral()
@@ -32,14 +32,13 @@ war {
 
 jib {
     to {
-        image = 'spacechip/scrabble-solver'
-        tags = [ project.version.toString() ]
+        image = 'dannyshih/scrabble-solver:' + project.version.toString()
     }
 
     from.image = 'tomcat:9.0.64-jdk17-temurin'
     container {
         appRoot = '/usr/local/tomcat/webapps/ROOT'
-        creationTime = '2022-06-26T17:50:38-07:00'
+        creationTime = '2022-07-24T01:33:00-07:00'
     }
 }
 

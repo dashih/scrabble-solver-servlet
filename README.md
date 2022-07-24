@@ -4,7 +4,7 @@ A Java servlet for helping at Scrabble/Words with Friends =)
 ## Deployment
 The easiest way to deploy this application is Docker.
 
-`docker run --name scrabble-solver --detach --publish 8081:8080 spacechip/scrabble-solver`
+`docker run --name scrabble-solver --detach --publish 8081:8080 dannyshih/scrabble-solver:<TAG>`
 
 Navigate to `http://localhost:8081`. The port can be changed as needed.
 

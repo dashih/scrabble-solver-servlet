@@ -8,16 +8,14 @@ services:
     ports:
       - "44300:8443"
     volumes:
-      - ./conf.d:/etc/nginx/conf.d
-      - ./tls:/etc/nginx/tls
-      # htpasswd -Bc -C 12 credentials/.htpasswd solver (dumbledore)
-      - ./credentials/.htpasswd:/var/www/static/.htpasswd
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/tls:/etc/nginx/tls
 
   scrabble-solver:
     container_name: scrabble-solver_app
-    image: spacechip/scrabble-solver
+    image: dannyshih/scrabble-solver:v8.7
     restart: unless-stopped
     environment:
       SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS: 8
       SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD: 500
-      SCRABBLE_SOLVER_LOGS_STDOUT: true
+      SCRABBLE_SOLVER_LOGS_STDOUT: "true"

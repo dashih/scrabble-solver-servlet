@@ -137,7 +137,11 @@ document.getElementById('solveButton').onclick = async () => {
         operation = await solveResponse.json();
         watchOperation();
     } else {
-        alert('Error from server starting solve operation: ' + solveResponse.status);
+        if (solveResponse.status === 400) {
+            alert('No required TLS certificate was sent');
+        } else {
+            alert('Error from server starting solve operation: ' + solveResponse.status);
+        }
     }
 };
 
