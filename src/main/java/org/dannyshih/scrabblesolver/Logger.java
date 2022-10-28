@@ -2,8 +2,7 @@ package org.dannyshih.scrabblesolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 public final class Logger {
     private static final String STDOUT_LOGS_PROP = "SCRABBLE_SOLVER_LOGS_STDOUT";
