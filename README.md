@@ -2,11 +2,15 @@
 A Java servlet for helping at Scrabble/Words with Friends =)
 
 ## Deployment
-The easiest way to deploy this application is Docker.
+The project contains a sample Docker Compose that demonstrates overriding some configuration options.
 
-`docker run --name scrabble-solver --detach --publish 8081:8080 dannyshih/scrabble-solver:<TAG>`
+```
+git clone https://github.com/dashih/scrabble-solver-servlet
+cd scrabble-solver-servlet/docker
+docker compose up --detach --build
+```
 
-Navigate to `http://localhost:8081`. The port can be changed as needed.
+Navigate a browser to `https://localhost:8000`
 
 ### Configuration
 | Environment variable                        | Default | Description |
@@ -15,18 +19,8 @@ Navigate to `http://localhost:8081`. The port can be changed as needed.
 | SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
 | SCRABBLE_SOLVER_LOGS_STDOUT                 | false    | Logs using the servlet context or stdout. stdout is preferred if running in docker, since the docker logging driver will always ingest from stdout |
 
-### Configuring docker deployment
-The image is published at https://hub.docker.com/r/spacechip/scrabble-solver. The application runs on the default tomcat port 8080. Simply exposing this port, like in the `docker run` example above, works. But this application can quickly saturate all processors, so it's recommended to set up some kind of authentication if running on a production server.
-
-This project contains a sample docker-compose that deploys an nginx reverse proxy in front of the application container. This proxy configures self-signed TLS for server authentication and client authentication for solve operations.
-
-```
-git clone https://github.com/dashih/scrabble-solver-servlet
-cd scrabble-solver-servlet/src/docker
-docker-compose up --detach --build
-```
-
-Access `https://localhost:44300`.
+### Resources
+This application can quickly saturate all processors, so it's recommended to set up some kind of authentication if running on a production server. This can be achieved pretty easily by putting an Nginx reverse proxy in front of the application container. Nginx can be configured to restrict access using client TLS or Basic Authentication. 
 
 ### Building and manual deployment
 This section is really only for contributing to development of this project.

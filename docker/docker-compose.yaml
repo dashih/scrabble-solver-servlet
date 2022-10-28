@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  scrabble-solver:
+    image: dannyshih/scrabble-solver:v8.7
+    restart: unless-stopped
+    ports:
+      - "8000:8080"
+    environment:
+      SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS: 8
+      SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD: 500
+      SCRABBLE_SOLVER_LOGS_STDOUT: "true"
