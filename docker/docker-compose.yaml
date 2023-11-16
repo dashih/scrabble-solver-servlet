@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   scrabble-solver:
-    image: dannyshih/scrabble-solver:v8.8
+    image: dannyshih/scrabble-solver:v8.9
     restart: unless-stopped
     ports:
       - "8000:8080"
