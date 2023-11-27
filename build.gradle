@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v8.9'
+version 'v8.9.1'
 
 repositories {
     mavenCentral()
@@ -38,7 +38,7 @@ jib {
     from.image = 'tomcat:10.1.15-jre21-temurin'
     container {
         appRoot = '/usr/local/tomcat/webapps/ROOT'
-        creationTime = '2023-11-16T00:03:00-08:00'
+        creationTime = '2023-11-26T23:10:00-08:00'
     }
 }
 
