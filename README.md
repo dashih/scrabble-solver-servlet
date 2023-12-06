@@ -133,6 +133,7 @@ As such, this version brought about a new benchmark, 15-characters with 2-blanks
 It's 2022 and everything is a docker container. Adds a dependency on Google's jib to easily produce a docker image for this project. Makes a number of things configurable via environment variables.
 
 ## Eye candy
+`*POUNBAEY*EHONT`
 
 ![Alt text](readme-img/15chars-2blanks_96cores.png?raw=true)
 
