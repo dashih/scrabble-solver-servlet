@@ -2,11 +2,13 @@
 A Java servlet for helping at Scrabble/Words with Friends =)
 
 ## Deployment
-The project contains a sample Docker Compose that demonstrates overriding some configuration options.
+Quickest deployment:
 
 ```
 git clone https://github.com/dashih/scrabble-solver-servlet
-cd scrabble-solver-servlet/docker
+cd scrabble-solver-servlet
+./gradlew jibDockerBuild
+cd docker
 docker compose up --detach --build
 ```
 
@@ -36,11 +38,13 @@ A default dictionary is included: `src/main/resources/dictionary.txt`. This file
 Deploy in any container server (tested on Tomcat 9).
 
 #### Building the application docker image
-This publishes the image to the local docker daemon:
+The image is currently configured for a private internal repository. Change it to suit your needs.
+
+This command publishes the image to the local docker daemon:
 
 `./gradlew jibDockerBuild`
 
-To publish to an official docker repository, credentials must be set up in advance.
+This command publishes the image to a remote registry:
 
 `./gradlew jib`
 

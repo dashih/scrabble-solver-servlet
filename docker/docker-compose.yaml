@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   scrabble-solver:
-    image: dannyshih/scrabble-solver:v8.9.1
+    image: registry.internal.dannyshih.net:5000/scrabble-solver:v8.9.2
     restart: unless-stopped
     ports:
       - "8000:8080"
