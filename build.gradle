@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v9.0.0'
+version 'v9.1.0'
 
 java {
     sourceCompatibility = '21'
@@ -52,7 +52,7 @@ jib {
 
     from.image = 'eclipse-temurin:21.0.7_6-jre'
     container {
-        creationTime = '2025-06-30T13:30:00-08:00'
+        creationTime = '2025-06-30T15:30:00-08:00'
         ports = ['8080']
     }
 

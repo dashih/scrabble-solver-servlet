@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "scrabble.solver")
 public class ScrabbleSolverConfig {
     
-    private int maxConcurrentOperations = 4;
-    private int permutationBatchThreshold = 200;
+    private int maxConcurrentOperations;
+    private int permutationBatchThreshold;
 
     public int getMaxConcurrentOperations() {
         return maxConcurrentOperations;
@@ -24,5 +24,13 @@ public class ScrabbleSolverConfig {
 
     public void setPermutationBatchThreshold(int permutationBatchThreshold) {
         this.permutationBatchThreshold = permutationBatchThreshold;
+    }
+
+    @Override
+    public String toString() {
+        return "ScrabbleSolverConfig{" +
+                "maxConcurrentOperations=" + maxConcurrentOperations +
+                ", permutationBatchThreshold=" + permutationBatchThreshold +
+                '}';
     }
 } 

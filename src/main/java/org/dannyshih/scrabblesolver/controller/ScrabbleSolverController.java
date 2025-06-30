@@ -1,11 +1,20 @@
 package org.dannyshih.scrabblesolver.controller;
 
-import org.dannyshih.scrabblesolver.dto.*;
+import org.dannyshih.scrabblesolver.config.ScrabbleSolverConfig;
+import org.dannyshih.scrabblesolver.dto.CurrentlyRunningResponse;
+import org.dannyshih.scrabblesolver.dto.GetProgressRequest;
+import org.dannyshih.scrabblesolver.dto.GetProgressResponse;
+import org.dannyshih.scrabblesolver.dto.SolveRequest;
+import org.dannyshih.scrabblesolver.dto.SolveResponse;
+import org.dannyshih.scrabblesolver.dto.VersionsResponse;
 import org.dannyshih.scrabblesolver.service.ScrabbleSolverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -14,10 +23,12 @@ import java.util.UUID;
 public class ScrabbleSolverController {
 
     private final ScrabbleSolverService scrabbleSolverService;
+    private final ScrabbleSolverConfig config;
 
     @Autowired
-    public ScrabbleSolverController(ScrabbleSolverService scrabbleSolverService) {
+    public ScrabbleSolverController(ScrabbleSolverService scrabbleSolverService, ScrabbleSolverConfig config) {
         this.scrabbleSolverService = scrabbleSolverService;
+        this.config = config;
     }
 
     @PostMapping("/solve")
@@ -65,16 +76,17 @@ public class ScrabbleSolverController {
     public ResponseEntity<VersionsResponse> getVersions() {
         String appVersion = scrabbleSolverService.getAppVersion();
         String springBootVersion = org.springframework.boot.SpringBootVersion.getVersion();
+        String tomcatVersion = org.apache.catalina.util.ServerInfo.getServerInfo();
         String javaVersion = System.getProperty("java.version");
         int numCores = Runtime.getRuntime().availableProcessors();
 
         VersionsResponse response = new VersionsResponse(
                 appVersion,
-                "Spring Boot Embedded Server",
                 springBootVersion,
+                tomcatVersion,
                 javaVersion,
-                numCores
-        );
+                numCores,
+                config.getMaxConcurrentOperations());
 
         return ResponseEntity.ok(response);
     }

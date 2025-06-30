@@ -14,10 +14,10 @@ window.onload = async () => {
         const v = await response.json();
         document.getElementById('versions').innerText = 
             `${v.app}
+            Spring Boot ${v.springBoot}
             ${v.tomcat}
-            Java Servlet API ${v.servletApi}
             Java ${v.java}
-            ${v.numCores} cores`;
+            ${v.numCores} cores (using ${v.maxConcurrentOperations})`;
     } else {
         alert('Error getting app info: ' + response.status);
     }

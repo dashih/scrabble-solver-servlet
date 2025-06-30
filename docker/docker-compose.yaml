@@ -1,9 +1,9 @@
 services:
   scrabble-solver:
-    image: registry.internal.dannyshih.net:5000/scrabble-solver:v9.0.0
+    image: registry.internal.dannyshih.net:5000/scrabble-solver:v9.1.0
     ports:
       - "8000:8080"
     environment:
-      - SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS=12
+      - SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS=8
       - SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD=200
     restart: unless-stopped

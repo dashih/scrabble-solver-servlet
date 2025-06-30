@@ -42,6 +42,7 @@ public class ScrabbleSolverService {
 
     @Autowired
     public ScrabbleSolverService(ScrabbleSolverConfig config) throws IOException {
+        S_LOGGER.info("{}", config);
         this.sequentialSolver = new SequentialSolver();
         this.parallelSolver = new ParallelSolver();
         this.operations = new ConcurrentHashMap<>();
