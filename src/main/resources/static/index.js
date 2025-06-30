@@ -56,7 +56,7 @@ function watchOperation() {
 
         const response = await fetch('/api/getProgress', {
             method: 'POST',
-            header: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(operation)
         });
         if (response.ok) {
@@ -153,7 +153,7 @@ document.getElementById('cancelButton').onclick = async () => {
 
     const response = await fetch('/api/cancel', {
         method: 'POST',
-        header: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(operation)
     });
     if (response.ok) {

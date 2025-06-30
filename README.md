@@ -1,9 +1,14 @@
 # scrabble-solver-servlet
-A Java servlet for helping at Scrabble/Words with Friends =)
+A Spring Boot application for helping at Scrabble/Words with Friends =)
 
-## Deployment
-Quickest deployment:
+## Quickest testing
+```
+./gradlew bootRun
+```
 
+Navigate a browser to `http://localhost:8080
+
+## Docker deployment
 ```
 git clone https://github.com/dashih/scrabble-solver-servlet
 cd scrabble-solver-servlet
@@ -12,41 +17,19 @@ cd docker
 docker compose up --detach --build
 ```
 
-Navigate a browser to `https://localhost:8000`
+Navigate a browser to `http://localhost:8000`
 
 ### Configuration
 | Environment variable                        | Default | Description |
 | ------------------------------------------- | -------- | ------- |
-| SCABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
-| SCABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
-| SCRABBLE_SOLVER_LOGS_STDOUT                 | false    | Logs using the servlet context or stdout. stdout is preferred if running in docker, since the docker logging driver will always ingest from stdout |
+| SCRABBLE_SOLVER_MAX_CONCURRENT_OPERATIONS    | 4        | How many solve operations can execute concurrently? This only matters for concurrent sequential solver operations, because a single parallel solver operation will saturate all CPUs. |
+| SCRABBLE_SOLVER_PERMUTATION_BATCH_THRESHOLD  | 200      | At what point (numer of strings to permute) does the parallel solver stop breaking up work? Useful for tuning on different environments. |
 
 ### Resources
 This application can quickly saturate all processors, so it's recommended to set up some kind of authentication if running on a production server. This can be achieved pretty easily by putting an Nginx reverse proxy in front of the application container. Nginx can be configured to restrict access using client TLS or Basic Authentication. 
 
-### Building and manual deployment
-This section is really only for contributing to development of this project.
-
-#### Building the application war
-A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included prior to building the war.
-
-```
-./gradlew build
-./gradlew war
-```
-
-Deploy in any container server (tested on Tomcat 9).
-
-#### Building the application docker image
-The image is currently configured for a private internal repository. Change it to suit your needs.
-
-This command publishes the image to the local docker daemon:
-
-`./gradlew jibDockerBuild`
-
-This command publishes the image to a remote registry:
-
-`./gradlew jib`
+### Default dictionary
+A default dictionary is included: `src/main/resources/dictionary.txt`. This file may be replaced with a custom dictionary but it must be included during build time.
 
 ## Algorithm
 Combinations, including blanks, are generated for the input string. These combinations are then permuted, and each permutation is checked against the dictionary to find solutions.
@@ -103,6 +86,7 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 | 6       | PERFORMANCE - Rewrite of the parallel solver to use Java ForkJoin. |
 | 7       | PERFORMANCE - Use a Trie to prune the permutation tree |
 | 8       | Docker! |
+| 9       | Spring Boot conversion - Modern web framework with enhanced features |
 
 ### Version 1
 This project began in college right when I learned the basic algorithm for generating string permutations. The original implemention was in C for no good reason; it was complex, only supported descrambling fixed-length strings, and did not support blanks. The next iteration was a Java command-line application.
@@ -141,6 +125,9 @@ As such, this version brought about a new benchmark, 15-characters with 2-blanks
 
 ### Version 8
 It's 2022 and everything is a docker container. Adds a dependency on Google's jib to easily produce a docker image for this project. Makes a number of things configurable via environment variables.
+
+### Version 9
+Spring Boot conversion courtesy of AI! The application has been modernized to use Spring Boot and Spring Web with the help of Cursor AI.
 
 ## Eye candy
 `*POUNBAEY*EHONT`

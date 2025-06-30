@@ -97,11 +97,11 @@ public final class Progress {
         Done
     }
 
-    static final class SerializableProgress {
-        RunStatus runStatus;
-        List<String> solutions;
-        long total;
-        float percentDone;
-        long elapsed;
+    public static final class SerializableProgress {
+        public RunStatus runStatus;
+        public List<String> solutions;
+        public long total;
+        public float percentDone;
+        public long elapsed;
     }
 }

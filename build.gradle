@@ -1,32 +1,47 @@
 plugins {
-    id 'war'
-    id 'com.google.cloud.tools.jib' version '3.4.2'
+    id 'org.springframework.boot' version '3.5.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'com.google.cloud.tools.jib' version '3.4.5'
 }
 
 group 'org.dannyshih.scrabblesolver'
-version 'v8.9.2'
+version 'v9.0.0'
+
+java {
+    sourceCompatibility = '21'
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
-    implementation group: 'com.google.guava', name: 'guava', version: '33.2.0-jre'
-    implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.0.0'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.12.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.12.2'
+}
+
+configurations {
+    // Disable Logback (default in Spring Boot) to not conflict with Log4j2
+    all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 }
 
 task writeVersionFile {
     doLast {
-        new File("$buildDir/resources/main/version.txt").write(project.version.toString())
+        def versionFile = new File("$buildDir/resources/main/version.txt")
+        versionFile.parentFile.mkdirs()
+        versionFile.write(project.version.toString())
     }
 }
 
-war {
+processResources {
     dependsOn writeVersionFile
 }
 
@@ -35,10 +50,10 @@ jib {
         image = 'registry.internal.dannyshih.net:5000/scrabble-solver:' + project.version.toString()
     }
 
-    from.image = 'tomcat:10.1.24-jre21-temurin'
+    from.image = 'eclipse-temurin:21.0.7_6-jre'
     container {
-        appRoot = '/usr/local/tomcat/webapps/ROOT'
-        creationTime = '2024-05-17T22:40:00-08:00'
+        creationTime = '2025-06-30T13:30:00-08:00'
+        ports = ['8080']
     }
 
     allowInsecureRegistries = true

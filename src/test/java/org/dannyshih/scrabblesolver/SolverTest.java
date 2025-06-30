@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 public final class SolverTest {
+
     @Test
     public void solveSerial() throws IOException {
         solve(new SequentialSolver());
@@ -34,7 +35,7 @@ public final class SolverTest {
         final int minCharacters = 8;
         final Pattern regex = Pattern.compile("A.+");
         final Progress progress = new Progress();
-        solver.solve(input, minCharacters, regex, progress, new AtomicBoolean(), new Logger());
+        solver.solve(input, minCharacters, regex, progress, new AtomicBoolean());
 
         Assertions.assertEquals(numExpected, progress.toSerializable().solutions.size());
         expected.forEach(expectedSolution ->

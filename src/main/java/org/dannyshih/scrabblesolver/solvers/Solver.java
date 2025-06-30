@@ -17,10 +17,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.math.BigIntegerMath;
-import org.dannyshih.scrabblesolver.Logger;
 import org.dannyshih.scrabblesolver.Progress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class Solver {
+    private static final Logger S_LOGGER = LoggerFactory.getLogger(Solver.class);
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     protected final Trie m_dictionary;
@@ -37,11 +39,10 @@ public abstract class Solver {
             int minCharacters,
             Pattern regex,
             Progress progress,
-            AtomicBoolean isCancellationRequested,
-            Logger logger) {
+            AtomicBoolean isCancellationRequested) {
         Preconditions.checkArgument(StringUtils.isNotBlank(input));
-        logger.log(String.format("Solver :: solving %s (%d chars, %d blanks), %d minimum, matching %s",
-                input, input.length(), input.chars().filter(c -> c == '*').count(), minCharacters, regex.toString()));
+        S_LOGGER.info("Solver :: solving {} ({} chars, {} blanks), {} minimum, matching {}",
+                input, input.length(), input.chars().filter(c -> c == '*').count(), minCharacters, regex.toString());
 
         final List<StringBuilder> combinations = new ArrayList<>();
         final AtomicLong totalPermutations = new AtomicLong();
@@ -51,23 +52,23 @@ public abstract class Solver {
         });
 
         progress.start(totalPermutations.get());
-        logger.log("Solver :: generated combinations: " + combinations.size());
+        S_LOGGER.info("Solver :: generated combinations: {}", combinations.size());
 
         try {
             final SolveOperationState opState = new SolveOperationState(
-                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, logger, new ConcurrentLinkedQueue<>());
+                    m_dictionary, minCharacters, regex, progress, isCancellationRequested, new ConcurrentLinkedQueue<>());
 
             doSolve(combinations, opState);
 
             opState.opTimes.stream().mapToDouble(d -> d).average().ifPresent(
-                    d -> logger.log("Solver :: avg op - " + d + " ms"));
+                    d -> S_LOGGER.info("Solver :: avg op - {} ms", d));
             opState.opTimes.stream().mapToDouble(d -> d).min().ifPresent(
-                    d -> logger.log("Solver :: min op - " + d + " ms"));
+                    d -> S_LOGGER.info("Solver :: min op - {} ms", d));
             opState.opTimes.stream().mapToDouble(d -> d).max().ifPresent(
-                    d -> logger.log("Solver :: max op - " + d + " ms"));
+                    d -> S_LOGGER.info("Solver :: max op - {} ms", d));
             progress.finish();
         } catch (CancellationException ce) {
-            logger.log("Solver :: canceled!");
+            S_LOGGER.info("Solver :: canceled!");
             progress.cancel();
         }
     }
