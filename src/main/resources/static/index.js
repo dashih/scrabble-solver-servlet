@@ -17,7 +17,7 @@ window.onload = async () => {
             Spring Boot ${v.springBoot}
             ${v.tomcat}
             Java ${v.java}
-            ${v.numCores} cores (using ${v.maxConcurrentOperations})`;
+            ${v.numCores} cores`;
     } else {
         alert('Error getting app info: ' + response.status);
     }

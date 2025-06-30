@@ -6,17 +6,15 @@ public class VersionsResponse {
     private String tomcat;
     private String java;
     private int numCores;
-    private int maxConcurrentOperations;
 
     public VersionsResponse() {}
 
-    public VersionsResponse(String app, String springBoot, String tomcat, String java, int numCores, int maxConcurrentOperations) {
+    public VersionsResponse(String app, String springBoot, String tomcat, String java, int numCores) {
         this.app = app;
         this.springBoot = springBoot;
         this.tomcat = tomcat;
         this.java = java;
         this.numCores = numCores;
-        this.maxConcurrentOperations = maxConcurrentOperations;
     }
 
     public String getApp() {
@@ -57,13 +55,5 @@ public class VersionsResponse {
 
     public void setNumCores(int numCores) {
         this.numCores = numCores;
-    }
-
-    public int getMaxConcurrentOperations() {
-        return maxConcurrentOperations;
-    }
-
-    public void setMaxConcurrentOperations(int maxConcurrentOperations) {
-        this.maxConcurrentOperations = maxConcurrentOperations;
     }
 } 

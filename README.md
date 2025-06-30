@@ -6,7 +6,7 @@ A Spring Boot application for helping at Scrabble/Words with Friends =)
 ./gradlew bootRun
 ```
 
-Navigate a browser to `http://localhost:8080
+Navigate a browser to http://localhost:8080
 
 ## Docker deployment
 ```

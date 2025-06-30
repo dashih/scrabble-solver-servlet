@@ -23,12 +23,10 @@ import java.util.UUID;
 public class ScrabbleSolverController {
 
     private final ScrabbleSolverService scrabbleSolverService;
-    private final ScrabbleSolverConfig config;
 
     @Autowired
-    public ScrabbleSolverController(ScrabbleSolverService scrabbleSolverService, ScrabbleSolverConfig config) {
+    public ScrabbleSolverController(ScrabbleSolverService scrabbleSolverService) {
         this.scrabbleSolverService = scrabbleSolverService;
-        this.config = config;
     }
 
     @PostMapping("/solve")
@@ -85,8 +83,7 @@ public class ScrabbleSolverController {
                 springBootVersion,
                 tomcatVersion,
                 javaVersion,
-                numCores,
-                config.getMaxConcurrentOperations());
+                numCores);
 
         return ResponseEntity.ok(response);
     }
