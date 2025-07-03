@@ -71,8 +71,8 @@ The first step of the algorithm, generating combinations, is done serially. Proc
 ### MacBook Pro (2023) - Apple M3 Max @ 4.05 GHz
 | Cores     | Time (s) | Speedup | Efficiency |
 | --------- | -------- | ------- | ---------- |
-| Serial    | 410      |         |            |
-| 14-core   | 42       | 9.76x   | 69.7%      |
+| Serial    | 365      |         |            |
+| 14-core   | 38       | 9.61x   | 68.6%      |
 
 ## Version History
 
